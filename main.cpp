@@ -5,7 +5,8 @@
 
 using namespace std;
 
-void processfile(string fname);
+void   processfile(string);
+string cleanword(string);
 
 int main(int argv, char **argc) {
   string fname;
@@ -35,6 +36,7 @@ void processfile(string fname) {
     n = 0;
     while (!infile.eof()) {
       infile >> wordstring;
+      wordstring = cleanword(wordstring);
       if (n < 5) group[n] = wordstring;
       else {
 	for (int i=0; i<4; i++) group[i]=group[i+1]; // shift every word to the left
@@ -50,3 +52,18 @@ void processfile(string fname) {
 
   return;
 }
+
+string cleanword(string inword) {
+  char c;
+  string outword;
+
+  for (int i=0; i<inword.length(); i++) {
+    c = inword[i];
+    if (((int)c >= 97) && ((int)c <= 122)) outword += c;
+    else {
+      if (((int)c >= 65) && ((int)c <= 90)) { c += 32; outword += c; }
+    } // end else (c)
+  } // end for (i)
+
+  return outword;
+} // end cleanword()
