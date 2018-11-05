@@ -26,9 +26,9 @@ using namespace std;
 */
 struct Datapoint {
 public:
-  Datapoint()         { d = 0.0; }  // default constructor initializes as zero
-  Datapoint(double f) { d = f; }    // alternate constructor initializes with supplied value
-  ~Datapoint()        { }           // destructor does nothing
+  Datapoint()                { d = 0.0; i = -1; } // default constructor initializes as empty
+  Datapoint(double f, int n) { d = f;   i = n;  } // alternate constructor initializes with supplied value
+  ~Datapoint()               { }                  // destructor does nothing
 
   Datapoint& operator=(const Datapoint& in) { d = in.d; i = in.i; return *this; } 
 
@@ -92,7 +92,7 @@ private:
 };
 
 /*
-** Dvect is a class set up to store and manipulate a double precision vector.
+** Dvect is a class set up to store and manipulate a simple double precision vector.
 */
 class Dvect {
 public:
