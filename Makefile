@@ -1,9 +1,13 @@
 all: words
 
-words: words.o
-	g++ -std=c++11 -g words.o
+words: temp/words.o
+	g++ -std=c++11 -g temp/words.o
 	mv a.out words
 
-words.o: main.cpp
-	g++ -std=c++11 -c main.cpp
-	mv main.o words.o
+temp/words.o: src/main.cpp
+	g++ -std=c++11 -c src/main.cpp
+	mv main.o temp/words.o
+
+clean:
+	rm -f *~
+	rm temp/*
