@@ -28,11 +28,13 @@ struct Datapoint {
 public:
   Datapoint()                { d = 0.0; i = -1; } // default constructor initializes as empty
   Datapoint(double f, int n) { d = f;   i = n;  } // alternate constructor initializes with supplied value
+  Datapoint(string t, int n) { s = t;   i = n;  } // alternate constructor initializes with supplied value
   ~Datapoint()               { }                  // destructor does nothing
 
   Datapoint& operator=(const Datapoint& in) { d = in.d; i = in.i; return *this; } 
 
-  double d;                         // the double precision element of the data
+  double d;                         // the double precision element
+  string s;                         // the string element
   int    i;                         // the index of the data (like an array index)
   
 };

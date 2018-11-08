@@ -4,6 +4,8 @@
 #include <string>
 #include <list>
 
+#include "../include/datamodule.h"
+
 using namespace std;
 
 #define NVEC 4 // the size of the word vector (# of priors)
