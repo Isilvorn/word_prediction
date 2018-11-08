@@ -11,3 +11,4 @@ temp/words.o: src/main.cpp
 clean:
 	rm -f *~
 	rm temp/*
+	rm words
