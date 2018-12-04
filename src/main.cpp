@@ -1,49 +1,15 @@
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-#include <string>
-#include <list>
+
 
 #include "../include/datamodule.h"
+#include "../include/dict.h"
 
 using namespace std;
 
-#define NVEC 4 // the size of the word vector (# of priors)
-
-/*
-** The "wordvect" structure stores the word vector and associated data.
-*/
-struct wordvect {
-public:
-  wordvect(void)       { entry="";  for (int i=0; i<4; i++) prec[i]=""; }
-  wordvect(string str) { entry=str; for (int i=0; i<4; i++) prec[i]=""; }
-  string entry;
-  string prec[NVEC];
-};  
-
-/*
-** The compvect() function compares two vectors for sorting purposes.
-*/
-bool compvect(wordvect *first, wordvect *second) {
-  if (first->entry > second->entry) return true; else return false;
-}
-
-/*
-** The "Dict" class stores the dictionary that is used to score the vectors.
-*/
-class Dict {
-public:
-  Dict();
-  ~Dict();
-
-private:
-  list<wordvect*> words; 
-};
-
-void   processfile(string);
+void   processfile(string, Dict&);
 string cleanword(string);
 
 int main(int argv, char **argc) {
+  Dict   words_used;
   string fname;
 
   if (argv == 2) {
@@ -51,7 +17,12 @@ int main(int argv, char **argc) {
     for (int i=0; i<argv; i++) cout << argc[i] << " ";
     cout << endl << endl;
     fname = argc[1];
-    processfile(fname);
+    processfile(fname, words_used);
+    cout << "Dictionary:" << endl << words_used << endl;
+    cout << "word almost: " << words_used["almost"].getord() << endl;
+    cout << "word hump: " << words_used["hump"].getord() << endl;
+    cout << "word war: " << words_used["war"].getord() << endl;
+
   } // end if (argv)
   else {
     cout << "Usage: ./words [Input File]" << endl;
@@ -63,7 +34,7 @@ int main(int argv, char **argc) {
 /*
 ** The processfile() function reads in a file intended to be used for training.
 */
-void processfile(string fname) {
+void processfile(string fname, Dict &d) {
   ifstream infile;
   string   wordstring, group[NVEC+1];
   int      n;
@@ -75,14 +46,18 @@ void processfile(string fname) {
     while (!infile.eof()) {
       infile >> wordstring;
       wordstring = cleanword(wordstring);
-      if (n < (NVEC+1)) group[n] = wordstring;
-      else {
-	for (int i=0; i<NVEC; i++) group[i]=group[i+1]; // shift every word to the left
-	group[NVEC] = wordstring;
-	for (int i=0; i<(NVEC+1); i++) cout   << group[i] << " ";
-	cout << endl;
-      } // end else (n)
-      n++;
+      if (wordstring != "") {
+        d.addword(wordstring);
+        if (n < (NVEC+1)) group[n] = wordstring;
+        else {
+          for (int i=0; i<NVEC; i++) group[i]=group[i+1]; // shift every word to the left
+          group[NVEC] = wordstring;
+          for (int i=0; i<(NVEC+1); i++) cout   << group[i] << " ";
+            cout << endl;
+        } // end else (n)
+        n++;
+        if (n > 100) break; // early termination for testing
+      } // end if (wordstring)
     } // end while (infile)
   } // end if (infile)
   else {
@@ -110,7 +85,3 @@ string cleanword(string inword) {
 
   return outword;
 } // end cleanword()
-
-Dict::Dict(void) { }
-
-Dict::~Dict(void) { }

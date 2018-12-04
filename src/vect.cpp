@@ -19,7 +19,7 @@ using namespace std;
 */
 
 /*
-** Overloading the "<<" operator allows outputing the elements to an output stream.
+** Overloading the "<<" operator allows sending the elements to an output stream.
 */
 
 ostream& operator<<(ostream& os, const Svect& v) {
