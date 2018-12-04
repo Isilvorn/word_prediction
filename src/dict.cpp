@@ -90,7 +90,9 @@ const wordvect& Dict::get(string sw) {
 
 /*
 ** The bracket ("[]") operator allows accessing an individual element in the dict. This is
-** equivalent to the "get" function (and, in fact, invokes it).
+** equivalent to the "get" function (and, in fact, invokes it in the first two cases).  The
+** last case finds the wordvect that matches a specific ordinal; this one is slower, since it
+** runs in O(n) time.
 */
 const wordvect& Dict::operator[](wordvect &wfind) {
   return (get(wfind));

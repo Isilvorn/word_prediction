@@ -19,10 +19,6 @@ int main(int argv, char **argc) {
     fname = argc[1];
     processfile(fname, words_used);
     cout << "Dictionary:" << endl << words_used << endl;
-    cout << "word almost: " << words_used["almost"].getord() << endl;
-    cout << "word hump: " << words_used["hump"].getord() << endl;
-    cout << "word war: " << words_used["war"].getord() << endl;
-
   } // end if (argv)
   else {
     cout << "Usage: ./words [Input File]" << endl;
