@@ -39,7 +39,7 @@ private:
 ** The "wordvect" structure stores the word vector and associated data.  Once the
 ** wordvect is written to the dictionary, the only data that is allowed to be
 ** changed is the data contained in the "wdata" substructure.  This guarantees
-** that the sort order of the multiset is not affected.
+** that the sort order of the multiset is never affected by updates.
 */
 struct wordvect {
 public:
@@ -52,8 +52,13 @@ public:
   wordvect& operator=(const wordvect &w)  { copy(w); return *this;  }
   wordvect& operator=(const string &sw)   { entry=sw; return *this; }
   // equivalence operators
-  bool      operator==(const wordvect &w) { return(entry==w.entry); }
-  bool      operator==(const string &sw)  { return(entry==sw);      }
+  bool      operator==(const string &sw)  { return(entry == sw);                     }
+  bool      operator==(const wordvect &w) { return(entry == w.entry);                }
+  bool      operator!=(const wordvect &w) { return(!(*this == w));                   }
+  bool      operator> (const wordvect &w) { return(comp(w));                         }
+  bool      operator< (const wordvect &w) { return(!((*this ) > w) && (*this != w)); }
+  bool      operator<=(const wordvect &w) { return(!(*this > w));                    }
+  bool      operator>=(const wordvect &w) { return(!(*this < w));                    }
 
   // copies all of the data from one wordvect to another
   void copy(const wordvect &w) 
