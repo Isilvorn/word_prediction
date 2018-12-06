@@ -15,7 +15,7 @@ Dict::~Dict() { }
 ** Overloading the "<<" operator allows sending the string element to an output stream.
 */
 ostream& operator<<(ostream& os, const wordvect& w) { 
-  os << w.entry << "(" << w.wd->count() << ")"; 
+  os << w.ord << ":" << w.entry << "(" << w.wd->count() << ")"; 
   return os; 
 } // end operator<<()
 ostream& operator<<(ostream& os, const Dict& d) {

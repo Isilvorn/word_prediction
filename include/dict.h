@@ -5,34 +5,55 @@
 #include <list>
 #include <set>
 
+#include "../include/vect.h"
+
 #ifndef DICT_H
 #define DICT_H
 
 using namespace std;
 
-#define NVEC 4 // the size of the word vector predecessor array (# of priors)
+#define NVEC 4     // the size of the word vector predecessor array (# of priors)
+#define MAXD 50000 // the nominal size of the dictionary for use in Svect operations
 
 /*
 ** The "wdata" struct contains all of the mutable data pertaining to a word vector.
 ** any data contained in this structure is guaranteed not to affect the sort order
 ** in the multiset (binary search tree) used to contain the dictionary of words
-** used in the data set.
+** used in the data set.  It is dynamically allocated at the time of a wordvect
+** instance creation.
 */
 struct wdata {
 public:
   wdata(void)  { clear(); } // default constructor
   ~wdata(void) { }          // destructor (does nothing)
 
+  // clear all data in the structure
   void clear(void)
-    { ct=0; for (int i=0; i<NVEC; i++) prec[i]=""; }
-  void copy(const wdata &wd)
-    { ct=wd.ct; for (int i=0; i<NVEC; i++) prec[i]=wd.prec[i]; }
+    { ct=0; prec.erase(prec.begin(), prec.end()); }
+  // copy the data from one instance of the structure to another
+  void copy(const wdata &wd) { 
+    list<Svect>::const_iterator it;
+    ct=wd.ct;
+    it = wd.prec.cbegin(); 
+    while (it != wd.prec.cend()) { prec.push_front(*it); it++; }
+  }
+  // add an example to the precursor data
+  void   add(Svect &v)   { prec.push_front(v); }
+  // access the front element in the precursor data
+  Svect& front(void)     { lit=prec.begin(); return *lit; }
+  // access the next element in the precursor data
+  Svect& next(void)      { lit++; if (lit == prec.end()) lit=prec.begin(); return *lit;  }
+  // access the size of the precursor data
+  int    size(void)      { return prec.size(); }
+  // increment the usage count
   void incr(void)        { ct++; }
+  // return the usage count
   int  count(void) const { return ct; }
 
 private:
-  string prec[NVEC];
-  int    ct;
+  list<Svect> prec;          // data set for precursors
+  list<Svect>::iterator lit; // the persistent list iterator
+  int         ct;            // usage count
 };
 
 /*

@@ -2,10 +2,16 @@
 ** Created by: Jason Orender
 ** (c) 2018 all rights reserved
 **
-** This library implements a sparse vector format using the list standard container.  The list
-** container was chosen so that new elements could be added or subtracted with minimal cost,
+** This library implements a sparse vector format (Svect) using the multiset standard container.
+** This container was chosen so that new elements could be added or subtracted with minimal cost,
 ** since this will happen quite often as elements become zeroes and need to be eliminated from
-** explicit expression in the vector.
+** explicit expression in the vector.  Most operations, since this is meant to facilitate
+** operations on sparse vectors, will be accomplished by using the cache system O(1) retrieval
+** time.  For vectors that have too many nonzero values (>64), the data can be retrieved in
+** O(log n) time since the multiset standard container is used.  A standard list would have
+** required O(n) time in these cases.  Of course if the size of the vector is known, and it
+** is relatively small and constant, using the Dvect class will work best since it is only 
+** allocated once and elements can be accessed in O(1) time.
 */
 
 #include "../include/vect.h"
@@ -14,7 +20,7 @@ using namespace std;
 
 /*
 ******************************************************************************
-******************** Svect CLASS DEFINITION BELOW HERE ***********************
+************************** Friend Functions HERE *****************************
 ******************************************************************************
 */
 
@@ -23,12 +29,21 @@ using namespace std;
 */
 
 ostream& operator<<(ostream& os, const Svect& v) {
+  multiset<Datapoint>::iterator it;
+  os << "{ ";
+  it = v.a.begin();
+  while (it != v.a.end()) { os <<  "[" << it->i << "]" << *it->d << " "; it++; }
+  //for (int i=0; i<v.size(); i++) os << v.element(i) << " ";
+  os << "}";
+  return os;
+} // end operator<< definition for Svect
+
+ostream& operator<<(ostream& os, const Dvect& v) {
   os << "[ ";
   for (int i=0; i<v.size(); i++) os << v.element(i) << " ";
   os << "]";
   return os;
-}
-
+} // end operator<< definition for Dvect
 
 /*
 ** Overloading the ">>" operator allows inputing the elements from an input stream.
@@ -41,7 +56,19 @@ istream& operator>>(istream& is, Svect& v) {
     if (d != 0.0) v.element_c(i) =  d; // only explicitly add the value if it is nonzero
   }
   return is;
-}
+} // end operator>> definition for Svect
+
+istream& operator>>(istream& is, Dvect& v) {
+  for (int i=0; i<v.size(); i++) is >> v[i];
+  return is;
+} // end operator>> definition for Dvect
+
+/*
+******************************************************************************
+******************** Svect CLASS DEFINITION BELOW HERE ***********************
+******************************************************************************
+*/
+
 
 /*
 ** Default constructor.
@@ -221,7 +248,7 @@ Svect& Svect::operator*=(const Svect &v) {
 
   if (v.size() == sz) {
     if (sz < CSZ) { // all values should be cached if this is true
-      for (i=0; i<sz; i++) { if (cache_index[i] != -1) *cache_dp[i] *= v[i]; }
+      for (i=0; i<sz; i++) *cache_dp[i] *= v[i];
     } // end if (sz)
     else {
       it = a.begin();
@@ -367,13 +394,14 @@ Svect& Svect::operator=(const double d) { setall(d); return *this; }
 
 /*
 ** The bracket ("[]") operator allows accessing an individual element in the vector. The first
-** version is the "get" function, and the second version is the "set" function.
+** version is the "get" function, and the second version is the "set" function.  These just
+** call the appropriate element() or element_c() function.
 */
-double Svect::operator[](int i) const{
+double Svect::operator[](int i) const{                           // get
   if (i < sz) return element(i); else return element(sz-1);
 } // end "[]" (get) operator definition
 double& Svect::operator[](int i) {
-  if (i < sz) return element_c(i); else return element_c(sz-1);
+  if (i < sz) return element_c(i); else return element_c(sz-1);  // set
 } // end "[]" (set) operator definition
 
 
@@ -473,3 +501,218 @@ void Svect::apply_threshold(double f) {
   } // end if (f)
 
 } // end apply_threshold()
+
+/*
+******************************************************************************
+******************** Dvect CLASS DEFINITION BELOW HERE ***********************
+******************************************************************************
+*/
+
+/*
+** The default constructor simply creates an empty vector of zero size.
+*/
+Dvect::Dvect(void) { 
+  a  = nullptr;
+  sz = 0;
+}
+
+/*
+** The alternate constructor creates a vector of size n with all of the elements
+** set to zero.
+*/
+Dvect::Dvect(int n) { 
+  // setting "a" to nullptr so that the resize function does not attempt to delete it
+  a = nullptr;
+  // using the resize function to initialize the vector
+  resize(n);
+}
+
+/*
+** The copy constructor creates a new vector that is exactly like the input vector,
+** but occupies distinctly different memory.
+*/
+Dvect::Dvect(const Dvect &v) {
+  // setting "a" to nullptr so that the resize function does not attempt to delete it
+  a = nullptr;
+  // using the resize function to initialize the vector, if it works copy the input
+  if (resize(v.size())) copy(v);
+}
+
+/*
+** The destructor deallocates any memory that was allocated.
+*/
+Dvect::~Dvect(void) {
+  // deallocating the memory set aside for the vector
+  if (a != nullptr) delete a;
+}
+
+/*
+** The following functions are simple get/set functions.
+*/
+double Dvect::element(int i) const { return a[i]; }
+void   Dvect::setall(double d)     { for (int i=0; i<sz; i++) a[i] = d; }
+void   Dvect::set(int i,double d)  { if (i < sz) a[i] = d; }
+int    Dvect::size(void) const     { return sz; }
+
+/*
+** The "*=" unary operator multiplies another vector with this one element-by-element.  
+** This does not correspond to a true matrix multiplication. If the vectors are not of 
+** equal size, it does nothing.
+*/
+Dvect& Dvect::operator*=(const Dvect &v) {
+  if (v.size() == sz) { for (int i=0; i<sz; i++) a[i] *= v.a[i]; }
+  return *this;
+}
+
+/*
+** This version of the "*=" unary operator simply multiplies every element in the
+** vector by a constant.
+*/
+Dvect& Dvect::operator*=(const double d) {
+  for (int i=0; i<sz; i++) a[i] *= d;
+  return *this;
+}
+
+/*
+** This version of the "*" operator multiplies a vector by a constant.
+*/
+Dvect Dvect::operator*(const double d) {
+  Dvect vreturn(*this);
+  vreturn *= d;
+  return vreturn;
+}
+
+/*
+** This version of the  "*" operator multiplies two vectors together element-by-element. 
+** If the vectors are not of equal size, it returns the vector on the lhs of the "*"
+** operator.
+*/
+Dvect Dvect::operator*(const Dvect &v) {
+  Dvect vreturn(*this);
+  vreturn *= v;
+  return vreturn;
+}
+
+/*
+** The "+=" operator adds another vector with this one element-by-element.
+** If the vectors are not of equal size, it does nothing.
+*/
+Dvect& Dvect::operator+=(const Dvect &v) {
+  if (v.size() == sz) { for (int i=0; i<sz; i++) a[i] += v.a[i]; }
+  return *this;
+}
+
+/*
+** The "+" operator adds two vectors together element-by-element. If the vectors are
+** not of equal size, it returns the vector on the lhs of the "+".
+*/
+Dvect Dvect::operator+(const Dvect &v) {
+  Dvect vreturn(*this);
+  vreturn += v;
+  return vreturn;
+}
+
+/*
+** The "-=" operator subtracts another vector from this one element-by-element.
+** If the vectors are not of equal size, it does nothing.
+*/
+Dvect& Dvect::operator-=(const Dvect &v) {
+  if (v.size() == sz) { for (int i=0; i<sz; i++) a[i] -= v.a[i]; }
+  return *this;
+}
+
+/*
+** The "-" operator subtracts two vectors element-by-element. If the vectors are
+** not of equal size, it returns the vector on the lhs of the "-".
+*/
+Dvect Dvect::operator-(const Dvect &v) {
+  Dvect vreturn(*this);
+  vreturn -= v;
+  return vreturn;
+}
+
+/*
+** This assignment operator uses the copy() function to copy from one vector to this one.
+** This vector is resized to correspond to the input vector and then the data is copied.
+*/
+Dvect& Dvect::operator=(const Dvect &v) {
+  resize(v.size());
+  copy(v);
+  return *this;
+}
+
+/*
+** This assignment operator uses the setall() function to copy a double to every element
+** in the vector.
+*/
+Dvect& Dvect::operator=(const double d) {
+  setall(d);
+  return *this;
+}
+
+/*
+** The bracket ("[]") operator allows accessing an individual element in the vector. If
+** an index is chosen that is greater than the size of the vector, the last element in
+** the vector is returned.  There is no protection for submitting a negative index; it is
+** assumed that the user of this class would know that negative numbers are categorically
+** illegal in this context.  The first version is the "get" version of the bracket overload,
+** while the next version is the "set" version of the bracket overload.
+*/
+double Dvect::operator[](int i) const{             // get
+  if (i < sz) return a[i]; else return a[sz-1];
+}
+double& Dvect::operator[](int i) {
+  if (i < sz) return a[i]; else return a[sz-1];    // set
+}
+
+
+/*
+** The resize() function resizes the vectors and destroys any data that might already
+** exist (sets all elements to zero).
+*/
+bool Dvect::resize(int n) {
+  // if the array is already allocated, deallocate it
+  if (a != nullptr) delete a;
+  // allocating a new vector ("a" for array)
+  a = new double[n];
+  // if the allocation was a success, the size is stored in "size"
+  // otherwise, size is set to 0 and failure is returned
+  if (a != nullptr) sz = n; else { sz = 0; return false; }
+  // initializing the new vector with all zeroes
+  for (int i=0; i<n; i++) a[i]=0;
+  // return success
+  return true;
+}
+
+/*
+** The copy() function copies the contents of one vector to another and returns "true"
+** if they are the same size.  Otherwise, it does nothing and returns "false".
+*/
+bool Dvect::copy(const Dvect &v) {
+  if (v.size() == sz) { for (int i=0; i<sz; i++) a[i]=v.a[i]; return true;  }
+  else                {                                       return false; }
+}
+
+/*
+** The sum() function returns a summation of all elements in a vector.
+*/
+double Dvect::sum(void) {
+  double sum=0.0;
+  for (int i=0; i<sz; i++) sum+=a[i];
+  return sum;
+}
+
+/*
+** The exp() function takes the exponential function of every element.
+*/
+void Dvect::exp_elem(void) {
+  for (int i=0; i<sz; i++) a[i] = exp(a[i]);
+}
+
+/*
+** The apply_threshold() function sets values greater than or equal to
+** the threshold to one and values less than the threshold to zero.
+*/
+void Dvect::apply_threshold(double d) {
+  for (int i=0; i<sz; i++) a[i] = (a[i] >= d)?1.0:0.0;
+}

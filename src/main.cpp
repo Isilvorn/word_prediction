@@ -18,7 +18,7 @@ int main(int argv, char **argc) {
     cout << endl << endl;
     fname = argc[1];
     processfile(fname, words_used);
-    words_used.thresh(20);
+    words_used.thresh(0);
     cout << "Dictionary:" << endl << words_used << endl;
   } // end if (argv)
   else {
@@ -35,6 +35,9 @@ void processfile(string fname, Dict &d) {
   ifstream infile;
   string   wordstring, group[NVEC+1];
   int      n;
+  WVit     wit;
+  wdata   *wd;
+  Svect    prec_example;
 
   infile.open(fname);
   if (infile.is_open()) {
@@ -44,15 +47,24 @@ void processfile(string fname, Dict &d) {
       wordstring = cleanword(wordstring);
       if (wordstring != "") {
         d.addword(wordstring);
+        wit = d.find(wordstring);
+        wd = wit->word_data();
         if (n < (NVEC+1)) group[n] = wordstring;
         else {
-          for (int i=0; i<NVEC; i++) group[i]=group[i+1]; // shift every word to the left
+          prec_example.resize(MAXD); // clears the existing data
+          // shift every word to the left and add to the precursor data
+          for (int i=0; i<=NVEC; i++) {
+            prec_example[d[group[i]].getord()] = (double)(i+1);
+            cout << group[i] << " ";
+            if (i < NVEC) group[i]=group[i+1];
+          }
+          cout << "<" << wordstring << ">" << endl;
+          cout << prec_example << endl;
+          wd->add(prec_example);
           group[NVEC] = wordstring;
-          for (int i=0; i<(NVEC+1); i++) cout << group[i] << " ";
-            cout << endl;
         } // end else (n)
         n++;
-        //if (n > 100) break; // early termination for testing
+        if (n > 100) break; // early termination for testing
       } // end if (wordstring)
     } // end while (infile)
   } // end if (infile)
