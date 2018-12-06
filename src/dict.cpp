@@ -21,7 +21,7 @@ ostream& operator<<(ostream& os, const wordvect& w) {
 ostream& operator<<(ostream& os, const Dict& d) {
   WVit it = d.words.end();
   os << "[ ";
-  do { it--; os << *it << " "; } while (it != d.words.begin());
+  do { it--; if ((*it).count() > d.thr) os << *it << " "; } while (it != d.words.begin());
   os << "] " << "<" << d.words.size() << ">";
   return os;
 } // end operator<<()
@@ -34,8 +34,16 @@ void Dict::clear(void) {
   empty.setord(-1);
   empty = "@";
   nord = 0;
+  thr = 0;
   words.erase(words.begin(),words.end());
 }
+
+/*
+** The thresh() function sets the threshold for performing group operations (like display).
+** any element that falls below the number of counts specified is ignored.  The default
+** threshold is zero.
+*/
+void Dict::thresh(int t) { thr = t; }
 
 /*
 ** The addword() functions add a wordvect to the dictionary if it does not already exist or

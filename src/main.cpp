@@ -18,6 +18,7 @@ int main(int argv, char **argc) {
     cout << endl << endl;
     fname = argc[1];
     processfile(fname, words_used);
+    words_used.thresh(20);
     cout << "Dictionary:" << endl << words_used << endl;
   } // end if (argv)
   else {
@@ -35,7 +36,6 @@ void processfile(string fname, Dict &d) {
   string   wordstring, group[NVEC+1];
   int      n;
 
-
   infile.open(fname);
   if (infile.is_open()) {
     n = 0;
@@ -48,11 +48,11 @@ void processfile(string fname, Dict &d) {
         else {
           for (int i=0; i<NVEC; i++) group[i]=group[i+1]; // shift every word to the left
           group[NVEC] = wordstring;
-          for (int i=0; i<(NVEC+1); i++) cout   << group[i] << " ";
+          for (int i=0; i<(NVEC+1); i++) cout << group[i] << " ";
             cout << endl;
         } // end else (n)
         n++;
-        if (n > 100) break; // early termination for testing
+        //if (n > 100) break; // early termination for testing
       } // end if (wordstring)
     } // end while (infile)
   } // end if (infile)

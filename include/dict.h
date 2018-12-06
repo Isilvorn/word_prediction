@@ -94,7 +94,7 @@ private:
 
 /*
 ** The classcompv structure compares two wordvectors for sorting purposes.  
-** The is the format that must be used for the multiset container declaration.
+** This is the format that must be used for the multiset container declaration.
 */
 struct classcompv {
   bool operator() (const wordvect &lhs, const wordvect &rhs) const
@@ -121,6 +121,8 @@ public:
   ~Dict();                        // destructor (does nothing)
 
   void      clear(void);          // clears all data in the dict
+  void      thresh(int=0);        // sets the threshold for group operations
+  int       thresh(void);         // gets the current threshold
   bool      addword(wordvect&);   // adds a word to the dictionary
   bool      addword(string);
   bool      exist(string);        // returns true if the word is already added
@@ -138,8 +140,9 @@ public:
 
 private:
   multiset<wordvect,classcompv> words;
-  wordvect empty; // an empty wordvect to return in cases where the requested entry does not exist
-  int      nord;  // the next ordinal number
+  wordvect empty;  // an empty wordvect to return in cases where the requested entry does not exist
+  int      nord;   // the next ordinal number
+  int      thr;    // count threshold for group operations (like display)
 };
 
 #endif // DICT_H

@@ -105,7 +105,7 @@ Datamodule::~Datamodule () {
 ** max number of iterations is reached.
 */
 int Datamodule::getsoln(double epsilon, int maxiter) {
-  int    i;             // counter
+  int    i=0;           // counter
   int    szw;           // the size of the w vector
   double ll, ll_old;    // objective function values
   double wTx, f;
@@ -127,11 +127,10 @@ int Datamodule::getsoln(double epsilon, int maxiter) {
 
     if (fabs(ll_old-ll) < epsilon) break;
     wvec += dk*alpha;
-  }
-
+  } // end for (i)
   return i;
 
-}
+} // end getsoln()
 
 /*
 ** The gen_conf_matrix() function calculates and displays (to stdout) a
@@ -169,22 +168,22 @@ bool Datamodule::read_input(char **argc, bool verbose) {
   // reading in initial weights file
   infile.open(argc[1]);
   if (infile.is_open()) {
-	if (verbose) cout << "Reading in data files..." << endl;
+    if (verbose) cout << "Reading in data files..." << endl;
 	
-	infile >> nFeatures >> nExamples;
-	cout << "  (" << nFeatures << " features, " 
-		 << nExamples << " examples)" << endl;
-	xvec = new Svect[nExamples];
-	for (int i=0; i<nExamples; i++) xvec[i].resize(nFeatures);
-	wvec.resize(nFeatures);
-	yvec.resize(nExamples);
+  	infile >> nFeatures >> nExamples;
+    cout << "  (" << nFeatures << " features, " 
+      << nExamples << " examples)" << endl;
+  	xvec = new Svect[nExamples];
+    for (int i=0; i<nExamples; i++) xvec[i].resize(nFeatures);
+    wvec.resize(nFeatures);
+    yvec.resize(nExamples);
 
-	infile >> wvec;
-	infile.close();
-	if (verbose) cout << "Initial Weights = " << wvec << endl;
-	  
-	infile.open(argc[2]);
-	if (infile.is_open()) {
+    infile >> wvec;
+    infile.close();
+    if (verbose) cout << "Initial Weights = " << wvec << endl;
+
+  	infile.open(argc[2]);
+    if (infile.is_open()) {
 	  infile >> yvec;
 	  infile.close();
 	  if (verbose) cout << "Observed y-values: " << endl << yvec << endl;
@@ -203,10 +202,9 @@ bool Datamodule::read_input(char **argc, bool verbose) {
 	}
 	else 
 	  { cerr << "Bad input file name (y-data)." << endl; return false; }
-  }
+  } // end if (infile)
   else 
 	{ cerr << "Bad input file name (weights)." << endl; return false; }
-  
   return true;
 }
 
