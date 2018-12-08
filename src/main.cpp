@@ -1,6 +1,5 @@
 
 
-#include "../include/datamodule.h"
 #include "../include/dict.h"
 
 using namespace std;
@@ -34,12 +33,11 @@ int main(int argv, char **argc) {
 */
 void processfile(string fname, Dict &d) {
   ifstream infile;
-  string   wordstring, group[NVEC+1];
-  int      n, m;
-  WVit     wit;
-  wdata   *wd;
-  Svect    prec_example;
-  string   words[10];
+  string     wordstring, dropword, group[NVEC+1];
+  int        n, m;
+  WVit       wit;
+  Svect      prec_example(MAXD);
+  string     words[10];
 
   infile.open(fname);
   if (infile.is_open()) {
@@ -49,24 +47,29 @@ void processfile(string fname, Dict &d) {
       wordstring = cleanword(wordstring);
       
       m = parse(wordstring, words);
-      cout << endl;
+      //cout << endl;
       for (int j=0; j < m; j++) {
         if (words[j] != "") {
           d.addword(words[j]);
           wit = d.find(words[j]);
-          wd = wit->word_data();
-          if (n < (NVEC+1)) group[n] = words[j];
+          if (n < (NVEC+1)) {
+            group[n] = words[j];
+            prec_example[wit->getord()] = n+1;
+          }
           else {
-            prec_example.resize(MAXD); // clears the existing data
+            //prec_example.resize(MAXD); // clears the existing data
             // shift every word to the left and add to the precursor data
+            dropword = group[0];
             for (int i=0; i<=NVEC; i++) {
-              prec_example[d[group[i]].getord()] = (double)(i+1);
-              cout << group[i] << " ";
+              //cout << group[i] << " ";
               if (i < NVEC) group[i]=group[i+1];
             }
-            cout << "<" << words[j] << ">" << endl;
-            cout << prec_example << endl;
-            wd->add(prec_example);
+            //cout << "<" << words[j] << ">" << endl;
+            //cout << prec_example << endl;
+            wit->addprec(prec_example);
+            prec_example -= 1;                              // decrement the value of all precursor words by one
+            prec_example.remove(d[dropword].getord());      // remove the oldest word from the precursors
+            prec_example[d[words[j]].getord()] = NVEC+1;    // add the current word to the precursors
             group[NVEC] = words[j];
           } // end else (n)
           n++;
@@ -84,7 +87,7 @@ void processfile(string fname, Dict &d) {
 
 /*
 ** The cleanword() function converts all characters to lower case and strips out punctuation,
-** literal numbers, and other special characters.
+** numbers, and other special characters, and replaces them with spaces.
 */
 string cleanword(string inword) {
   char c;
@@ -134,12 +137,10 @@ int parse(string instr, string words[]) {
 
   } // end for (i)
 
-  //if (newword == false) {
-    words[k] = word;
-    newword = false;
-    word = "";
-    word += c;
-  //} // end if (newword)
+  words[k] = word;
+  newword = false;
+  word = "";
+  word += c;
 
   return (k+1);
 } // end parse()

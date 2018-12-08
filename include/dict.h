@@ -6,6 +6,7 @@
 #include <set>
 
 #include "../include/vect.h"
+#include "../include/datamodule.h"
 
 #ifndef DICT_H
 #define DICT_H
@@ -54,6 +55,8 @@ private:
   list<Svect> prec;          // data set for precursors
   list<Svect>::iterator lit; // the persistent list iterator
   int         ct;            // usage count
+  Svect       weights;       // the weights calculated via logistic regession for predicting
+                             // this word based on its list of precursor vectors
 };
 
 /*
@@ -97,6 +100,9 @@ public:
   // sets and gets the ordinal of the word
   void setord(int o)           { ord=o; }
   int  getord(void) const      { return ord; }
+  // pass-through method that adds a precursor vector to the word data
+  void addprec(Svect &prec) const   
+    { wdata *w; w = wd; w->add(prec); }
   // Once a wordvect instance is stored in the dictionary, the only
   // way to change the substructure data is to explicitly set the
   // pointer to that data to another variable and manipulate it that

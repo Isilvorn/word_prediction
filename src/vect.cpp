@@ -164,12 +164,12 @@ double& Svect::element_c(int n) {
   multiset<Datapoint>::iterator it;
   Datapoint                 dp;
 
-  if (cache_index[n%CSZ] == n) return (*cache_dp[n%CSZ]);
+  if (cache_index[n%CSZ] == n) return (*cache_dp[n%CSZ]); // returns cache value if in cache
   else {
-    if (cache_index[n%CSZ] != -1) {
-      dp.i = n;
+    if (cache_index[n%CSZ] != -1) { // checks to see if this cache value has ever been used
+      dp.i = n;                     // if it has, then this index might already exist in the multiset
       it = a.find(dp);
-      if (it != a.end()) {
+      if (it != a.end()) {          // update the cache according to the data found in the multiset
         cache_index[n%CSZ] = n;
         cache_dp[n%CSZ]    = (*it).d;
         cache_it[n%CSZ]    = it;
@@ -177,6 +177,7 @@ double& Svect::element_c(int n) {
       } // end if (it)
     } // end if (cache_index)
 
+  // if the index is not in the cache or the multiset, add it to both
   dp.i = n;
   it = a.insert(dp);
   cache_it[n%CSZ]    = it;
@@ -353,7 +354,7 @@ Svect& Svect::operator-=(const Svect &v) {
   int i;
   multiset<Datapoint>::const_iterator itc;
 
-  if (v.size() == sz) {	
+  if (v.size() == sz) { 
     if (sz < CSZ) { // all values should be cached if this is true
       for (i=0; i<sz; i++) { if (v.cache_index[i] != -1) element_c(i) -= *v.cache_dp[i]; }
     } // end if (sz)
@@ -366,6 +367,29 @@ Svect& Svect::operator-=(const Svect &v) {
       } // end while (it)
     } // end else (sz)
   } // end if (v)
+
+  return *this;
+} // end "-=" operator definition
+
+/*
+** The "-=" operator when used with a double rhs argument subtracts every EXPLICIT element
+** by the rhs argument.
+*/
+Svect& Svect::operator-=(const double x) {
+  multiset<Datapoint>::iterator it;
+  double d;
+
+  if (sz < CSZ) { // all values should be cached if this is true
+    for (int i=0; i<sz; i++)  { if (cache_index[i] != -1) *cache_dp[i] -= x; }
+  } // end if (sz)
+  else {
+    it = a.begin();
+    while (it != a.end()) { 
+      d = (*(*it).d) - x;
+      sete(it, d); 
+      it++; 
+    } // end while (it)
+  } // end else (sz)
 
   return *this;
 } // end "-=" operator definition

@@ -80,6 +80,7 @@ public:
   Svect& operator+=(const Svect&);   // adds the vector element-by-element with another
   Svect  operator+(const Svect&);    // adds two vectors together element-by-element
   Svect& operator-=(const Svect&);   // subtracts another vector element-by-element from this one  
+  Svect& operator-=(const double);   // subtracts every EXPLICIT element by the rhs argument  
   Svect  operator-(const Svect&);    // subtracts two vectors element-by-element
   Svect& operator=(const double);    // sets all elements of a vector to a specific value
   Svect& operator=(const Svect&);    // sets the elements to the same as those of another
