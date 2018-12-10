@@ -69,6 +69,7 @@ public:
   double  element(int) const;        // gets the value of a specific element in the vector
   double& element_c(int);            // returns a reference to an element's data
   void    setall(double);            // sets all elements of a vector to the argument value
+  void    set_explicit(double);      // sets all EXPLICIT elements of a vector to the argument value
   void    sete(int,double);          // sets a specific element to the argument value
   void    sete(multiset<Datapoint>::iterator&, double);
   int     size(void) const;          // gets the size of the vector
@@ -82,7 +83,7 @@ public:
   Svect& operator-=(const Svect&);   // subtracts another vector element-by-element from this one  
   Svect& operator-=(const double);   // subtracts every EXPLICIT element by the rhs argument  
   Svect  operator-(const Svect&);    // subtracts two vectors element-by-element
-  Svect& operator=(const double);    // sets all elements of a vector to a specific value
+  Svect& operator=(const double);    // sets every EXPLICIT element of a vector to a specific value
   Svect& operator=(const Svect&);    // sets the elements to the same as those of another
   double operator[](int) const;      // allows accessing an individual element via brackets
   double& operator[](int);           // allows setting an individual element via brackets
@@ -92,10 +93,14 @@ public:
   void   remove(int);                // removes an explicit element (sets it to zero)
   multiset<Datapoint>::iterator remove(multiset<Datapoint>::iterator&);
   bool   resize(int);                // discards the data and sets the vector size to a new value
+  void   upsize(int);                // sets a new value for the vector size but keeps the data
   bool   copy(const Svect&);         // copies the data from an input vector to this one
   double sum(void);                  // returns the summation of all elements of this vector
   void   exp_elem(void);             // takes the exponential function of every element
   void   apply_threshold(double);    // sets values >= threshold to 1 and < threshold to 0
+  void   concat(Svect&);             // concatenates this Svect with another
+  void   tag(int);                   // sets the tag
+  int    tag(void);                  // gets the tag
 
   friend ostream& operator<<(ostream&,const Svect&); // outputs all elements to a stream
   friend istream& operator>>(istream&, Svect&);      // inputs n elements from a stream
@@ -106,8 +111,9 @@ private:
   // defining a cache for array-like access speeds for vectors that have fewer explicit elements
   // than the size of the cache (storing the iterator to directly access the elements)
   multiset<Datapoint>::iterator cache_it[CSZ];
-  int                       cache_index[CSZ];        // storing the index of the element in the vector
-  double*                   cache_dp[CSZ];           // storing a pointer to the data element
+  int      cache_index[CSZ];                         // storing the index of the element in the vector
+  double*  cache_dp[CSZ];                            // storing a pointer to the data element
+  int      tag_;                                     // can be used to identify a specific Svect
 };
 
 ostream& operator<<(ostream&, const Svect&);

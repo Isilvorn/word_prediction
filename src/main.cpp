@@ -10,6 +10,7 @@ int    parse(string, string[]);
 
 int main(int argv, char **argc) {
   Dict   words_used;
+  Svect  A,B,C;
   string fname;
 
   if (argv == 2) {
@@ -18,8 +19,14 @@ int main(int argv, char **argc) {
     cout << endl << endl;
     fname = argc[1];
     processfile(fname, words_used);
-    words_used.thresh(0);
+    words_used.thresh(50);
     cout << "Dictionary:" << endl << words_used << endl;
+    words_used["twice"].solve(0.5);
+    cout << "list : " << words_used["twice"].word_data()->front() << endl;
+    for (int i=0; i < words_used["twice"].word_data()->prec.size(); i++) {
+      cout << "array: " << words_used["twice"].word_data()->features[i] << endl;
+      cout << "list : " << words_used["twice"].word_data()->next() << endl;
+    }
   } // end if (argv)
   else {
     cout << "Usage: ./words [Input File]" << endl;
@@ -48,7 +55,7 @@ void processfile(string fname, Dict &d) {
       wordstring = cleanword(wordstring);
       
       m = parse(wordstring, words);
-      cout << endl;
+      //cout << endl;
       for (int j=0; j < m; j++) {
         if (words[j] != "") {
           d.addword(words[j]);
@@ -60,16 +67,17 @@ void processfile(string fname, Dict &d) {
           else {
             group[NVEC] = words[j];
             // checking for duplicates among the precursors - only want to drop if there are none
+            // in order to keep the highest value precursor
             dup = false;
             for (int i=1; i < NVEC; i++) if (group[0] == group[i]) dup = true;
             if (!dup) dropword = group[0]; else dropword = "";
             // shift every word to the left and add to the precursor data
             for (int i = 0; i < NVEC; i++) {
-              cout << group[i] << " ";
+              //cout << group[i] << " ";
               group[i] = group[i+1];
             }
-            cout << "<" << words[j] << ">" << endl;
-            cout << prec_example << endl;
+            //cout << "<" << words[j] << ">" << endl;
+            //cout << prec_example << endl;
             wit->addprec(prec_example);
             prec_example -= 1;                            // decrement the value of all precursor words by one
             prec_example.remove(d[dropword].getord());    // remove the oldest word from the precursors
@@ -78,7 +86,7 @@ void processfile(string fname, Dict &d) {
           n++;
         } // end if (words)
       } // end for (j)
-      if (n > 100) break; // early termination for testing
+      //if (n > 100) break; // early termination for testing
     } // end while (infile)
   } // end if (infile)
   else {

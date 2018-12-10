@@ -16,7 +16,7 @@ temp/dict.o: src/dict.cpp include/dict.h
 	g++ -std=c++11 -c src/dict.cpp
 	mv dict.o temp/dict.o
 
-temp/datamodule.o: src/datamodule.cpp
+temp/datamodule.o: src/datamodule.cpp include/datamodule.h
 	g++ -std=c++11 -c src/datamodule.cpp
 	mv datamodule.o temp/datamodule.o
 

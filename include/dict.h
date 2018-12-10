@@ -1,4 +1,5 @@
 #include <iostream>
+#include <utility>
 #include <fstream>
 #include <iomanip>
 #include <string>
@@ -12,6 +13,7 @@
 #define DICT_H
 
 using namespace std;
+using namespace std::rel_ops;
 
 #define NVEC 4     // the size of the word vector predecessor array (# of priors)
 #define MAXD 50000 // the nominal size of the dictionary for use in Svect operations
@@ -25,38 +27,29 @@ using namespace std;
 */
 struct wdata {
 public:
-  wdata(void)  { clear(); } // default constructor
-  ~wdata(void) { }          // destructor (does nothing)
+  wdata(void);                 // default constructor
+  ~wdata(void);                // destructor (does nothing)
 
-  // clear all data in the structure
-  void clear(void)
-    { ct=0; prec.erase(prec.begin(), prec.end()); }
-  // copy the data from one instance of the structure to another
-  void copy(const wdata &wd) { 
-    list<Svect>::const_iterator it;
-    ct=wd.ct;
-    it = wd.prec.cbegin(); 
-    while (it != wd.prec.cend()) { prec.push_front(*it); it++; }
-  }
-  // add an example to the precursor data
-  void   add(Svect &v)   { prec.push_front(v); }
-  // access the front element in the precursor data
-  Svect& front(void)     { lit=prec.begin(); return *lit; }
-  // access the next element in the precursor data
-  Svect& next(void)      { lit++; if (lit == prec.end()) lit=prec.begin(); return *lit;  }
-  // access the size of the precursor data
-  int    size(void)      { return prec.size(); }
-  // increment the usage count
-  void incr(void)        { ct++; }
-  // return the usage count
-  int  count(void) const { return ct; }
+  
+  void clear(void);            // clear all data in the structure
+  void clearf(void);           // clears the features vector collection only
+  void copy(const wdata&);     // copy the data from one instance of the structure to another
+  void add(Svect&);            // add an example to the precursor data
+  Svect& front(void);          // access the front element in the precursor data
+  Svect& next(void);           // access the next element in the precursor data
+  int    size(void);           // access the size of the precursor data
+  void incr(void);             // increment the usage count
+  int  count(void) const;      // return the usage count
+  void init_weights(double);   // initializes the weights used for the logistic regression calculation
+  void init_logr(double);      // initializes the features array used in the logistic regression
 
-private:
-  list<Svect> prec;          // data set for precursors
-  list<Svect>::iterator lit; // the persistent list iterator
-  int         ct;            // usage count
-  Svect       weights;       // the weights calculated via logistic regession for predicting
-                             // this word based on its list of precursor vectors
+  list<Svect> prec;            // data set for precursors
+  list<Svect>::iterator lit;   // the persistent list iterator
+  int         ct;              // usage count
+  Svect       weights;         // the weights calculated via logistic regession for predicting
+                               // this word based on its list of precursor vectors
+  Svect      *features;        // the features vector collection used in the logistic regression
+  Svect       obs;             // the observations vector used in the logistic regression
 };
 
 /*
@@ -67,56 +60,43 @@ private:
 */
 struct wordvect {
 public:
-  wordvect(void)              { wd=new wdata; clear(); }            // default constructor (makes an empty instance)
-  wordvect(string str)        { wd=new wdata; clear(); entry=str; } // alternate constructor (initializes the string entry)
-  wordvect(const wordvect &w) { wd=new wdata; clear(); copy(w); }   // copy constructor
-  ~wordvect()                 { if (wd != nullptr) delete wd; }     // destructor
+  wordvect(void);                        // default constructor (makes an empty instance)
+  wordvect(string);                      // alternate constructor (initializes the string entry)
+  wordvect(const wordvect&);             // copy constructor
+  ~wordvect();                           // destructor
 
-  // assignment operators
-  wordvect& operator=(const wordvect &w)  { copy(w); return *this;  }
-  wordvect& operator=(const string &sw)   { entry=sw; return *this; }
-  // equivalence operators
-  bool      operator==(const string &sw)  { return(entry == sw);                     }
-  bool      operator==(const wordvect &w) { return(entry == w.entry);                }
-  bool      operator!=(const wordvect &w) { return(!(*this == w));                   }
-  bool      operator> (const wordvect &w) { return(comp(w));                         }
-  bool      operator< (const wordvect &w) { return(!((*this ) > w) && (*this != w)); }
-  bool      operator<=(const wordvect &w) { return(!(*this > w));                    }
-  bool      operator>=(const wordvect &w) { return(!(*this < w));                    }
+  wordvect& operator=(const wordvect&);  // assignment operator
+  wordvect& operator=(const string&);    // assignment operator
+  bool      operator==(const string&);   // equivalence operator
+  bool      operator==(const wordvect&); // equivalence operator
+  bool      operator<(const wordvect&);  // less-than operator
+  bool      operator<(const string&);    // less-than operator
 
-  // copies all of the data from one wordvect to another
-  void copy(const wordvect &w) 
-    { entry=w.entry; ord=w.ord; wd->copy(*w.wd); }
-  // compares two wordvect instances
-  bool comp(const wordvect &w) const
-    { return(entry > w.entry); }
-   // clears all data in a wordvect instance
-  void clear(void) 
-    { entry=""; ord=0; wd->clear(); }
-  // increments the usage counter by invoking the substructure
-  void incr(void)              { wd->incr(); }
-  // returns the usage count stored in the substructure
-  int  count(void) const       { return wd->count(); }
-  // sets and gets the ordinal of the word
-  void setord(int o)           { ord=o; }
-  int  getord(void) const      { return ord; }
-  // pass-through method that adds a precursor vector to the word data
-  void addprec(Svect &prec) const   
-    { wdata *w; w = wd; w->add(prec); }
+  void copy(const wordvect&);            // copies all of the data from one wordvect to another
+  bool comp(const wordvect&) const;      // compares two wordvect instances 
+  bool comp(const string&) const;        // compares a string to the string data of this instance
+  void clear(void);                      // clears all data in a wordvect instance
+  void incr(void);                       // increments the usage counter
+  int  count(void) const;                // returns the usage count of the word
+  void setord(int);                      // sets the ordinal of the word
+  int  getord(void) const;               // gets the ordinal of the word
+  void addprec(Svect&) const;            // adds a precursor vector to the word data
+  void solve(double) const;              // master function that solves for the weights
+
   // Once a wordvect instance is stored in the dictionary, the only
   // way to change the substructure data is to explicitly set the
   // pointer to that data to another variable and manipulate it that
   // way (since the structure is treated as a const from that point
-  // forward).
+  // forward). This function will be removed after testing.
   wdata* word_data(void) const { return wd; }
 
   // outputs string component to a stream
   friend ostream& operator<<(ostream&,const wordvect&);
 
 private:
-  string entry;
-  int    ord;    // the ordinal number of a wordvect instance
-  wdata  *wd;    // extra data on this word stored in a substructure
+  string entry;   // the string data for this word
+  int    ord;     // the ordinal number of a wordvect instance
+  wdata  *wd;     // extra data on this word stored in a substructure
 };  
 
 /*
@@ -168,8 +148,12 @@ public:
 private:
   multiset<wordvect,classcompv> words;
   wordvect empty;  // an empty wordvect to return in cases where the requested entry does not exist
+  wordvect train;  // a wordvect made up of a random selection of examples, used for training the model
+  wordvect test;   // a wordvect made up of a random selection of examples, used for testing the model
   int      nord;   // the next ordinal number
   int      thr;    // count threshold for group operations (like display)
+  double   ptrain; // the probability of being copied into the train wordvect
+  double   ptest;  // the probability of being copied into the test wordvect
 };
 
 #endif // DICT_H

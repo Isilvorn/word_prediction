@@ -213,6 +213,27 @@ void Svect::setall(double d) {
 }
 
 /*
+** The set_explicit() function sets every EXPLICIT element that already exists to a specified
+** input value.
+*/
+void Svect::set_explicit(double d) {
+  multiset<Datapoint>::iterator it;
+  double *dpoint;
+  int    i;
+
+  it = a.begin();
+  while (it != a.end()) {
+    dpoint = it->d;
+    i = it->i;
+    *dpoint = d;
+    cache_it[i%CSZ]    = it;
+    cache_index[i%CSZ] = i;
+    cache_dp[i%CSZ]    = (*it).d;
+    it++;
+  } // end while (it)
+} // end set_explicit();
+
+/*
 ** The sete() function sets a specific element to an input value.  If the subscript is out of range,
 ** it does nothing.
 */
@@ -414,7 +435,7 @@ Svect& Svect::operator=(const Svect &v) { copy(v); return *this; }
 ** This assignment operator uses the setall() function to copy a double to every element
 ** in the vector.
 */
-Svect& Svect::operator=(const double d) { setall(d); return *this; }
+Svect& Svect::operator=(const double d) { set_explicit(d); return *this; }
 
 /*
 ** The bracket ("[]") operator allows accessing an individual element in the vector. The first
@@ -442,6 +463,16 @@ bool Svect::resize(int n) {
 
   return true; // this basic case always returns true
 } // end resize()
+
+/*
+** The upsize() function resizes the vector but keeps the current data.  The new value
+** must be larger than the current size or the function does nothing.  The new elements
+** will effectively all be zero since an explicit element will not exist.
+*/
+void Svect::upsize(int n) {
+  if (n <= sz) return; // do nothing if the new size is not bigger than the old
+  sz = n;              // set the new size
+} // end upsize()
 
 /*
 ** The copy() function copies the data of one vector to another and returns "true"
@@ -525,6 +556,32 @@ void Svect::apply_threshold(double f) {
   } // end if (f)
 
 } // end apply_threshold()
+
+/*
+** The concat() function concatenates this Svect instance with another.  If this
+** is vector "A" and the other is vector "B", the result will be C = A & B, and
+** the length will be len(A) + len(B).
+*/
+void Svect::concat(Svect &B) {
+  multiset<Datapoint>::iterator it;
+  int  i, o = sz;
+  sz += B.size();
+  it = B.a.begin();
+  while (it != B.a.end()) {
+    i = it->i + o;
+    element_c(i) = *it->d;
+    it++;
+    i++;
+  }
+
+
+}
+
+/*
+** The tag() functions get and set the tag associated with a specific Svect instance.
+*/
+void Svect::tag(int t) { tag_ = t;      }
+int  Svect::tag(void)  { return (tag_); }
 
 /*
 ******************************************************************************
