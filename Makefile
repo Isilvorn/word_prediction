@@ -1,8 +1,7 @@
 all: words
 
 words: temp/words.o temp/vect.o temp/dict.o temp/datamodule.o
-	g++ -std=c++11 -g temp/words.o temp/vect.o temp/dict.o temp/datamodule.o
-	mv a.out words
+	g++ -std=c++11 -g temp/words.o temp/vect.o temp/dict.o temp/datamodule.o -o words
 
 temp/words.o: src/main.cpp include/dict.h
 	g++ -std=c++11 -c src/main.cpp
@@ -22,5 +21,5 @@ temp/datamodule.o: src/datamodule.cpp include/datamodule.h
 
 clean:
 	rm -f *~
-	rm temp/*.o
-	rm words
+	rm -f temp/*.o
+	rm -f words
