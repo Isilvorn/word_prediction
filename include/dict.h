@@ -5,6 +5,7 @@
 #include <string>
 #include <list>
 #include <set>
+#include <random>
 
 #include "../include/vect.h"
 #include "../include/datamodule.h"
@@ -19,6 +20,13 @@ using namespace std::rel_ops;
 #define MAXD 50000 // the nominal size of the dictionary for use in Svect operations
 
 /*
+** Defining the RAND macro and component parts globally so that a psuedorandom number 
+** can be supplied in any necessary function with no danger of repeating the same
+** sequence in multiple function calls, but retain the dertministic nature of the
+** pseudorandom sequence application-wide if desired.
+*/
+#define RAND rand_distr(rand_gen)
+/*
 ** The "wdata" struct contains all of the mutable data pertaining to a word vector.
 ** any data contained in this structure is guaranteed not to affect the sort order
 ** in the multiset (binary search tree) used to contain the dictionary of words
@@ -31,7 +39,7 @@ public:
   ~wdata(void);                // destructor (does nothing)
 
   
-  void clear(void);            // clear all data in the structure
+  void clear(int=0);           // clear all data in the structure and specify Svect nominal size
   void clearf(void);           // clears the features vector collection only
   void copy(const wdata&);     // copy the data from one instance of the structure to another
   void add(Svect&);            // add an example to the precursor data
@@ -46,6 +54,7 @@ public:
   list<Svect> prec;            // data set for precursors
   list<Svect>::iterator lit;   // the persistent list iterator
   int         ct;              // usage count
+  int         sz;              // nominal size of the sparse vectors
   Svect       weights;         // the weights calculated via logistic regession for predicting
                                // this word based on its list of precursor vectors
   Svect      *features;        // the features vector collection used in the logistic regression
@@ -146,10 +155,10 @@ public:
   friend ostream& operator<<(ostream&,const Dict&); // outputs all elements to a stream
 
 private:
-  multiset<wordvect,classcompv> words;
+  multiset<wordvect,classcompv> words; // the set of words that make up the dictionary
+  multiset<wordvect,classcompv> train; // the words in the training set (random subset of words)
+  multiset<wordvect,classcompv> test;  // the words in the testing set (random subset of words)
   wordvect empty;  // an empty wordvect to return in cases where the requested entry does not exist
-  wordvect train;  // a wordvect made up of a random selection of examples, used for training the model
-  wordvect test;   // a wordvect made up of a random selection of examples, used for testing the model
   int      nord;   // the next ordinal number
   int      thr;    // count threshold for group operations (like display)
   double   ptrain; // the probability of being copied into the train wordvect

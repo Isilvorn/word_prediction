@@ -1,5 +1,5 @@
 
-
+#include "../include/datamodule.h"
 #include "../include/dict.h"
 
 using namespace std;
@@ -19,14 +19,14 @@ int main(int argv, char **argc) {
     cout << endl << endl;
     fname = argc[1];
     processfile(fname, words_used);
-    words_used.thresh(50);
+    words_used.thresh(1);
     cout << "Dictionary:" << endl << words_used << endl;
     words_used["twice"].solve(0.5);
-    cout << "list : " << words_used["twice"].word_data()->front() << endl;
-    for (int i=0; i < words_used["twice"].word_data()->prec.size(); i++) {
-      cout << "array: " << words_used["twice"].word_data()->features[i] << endl;
-      cout << "list : " << words_used["twice"].word_data()->next() << endl;
-    }
+    //cout << "list : " << words_used["twice"].word_data()->front() << endl;
+    //for (int i=0; i < words_used["twice"].word_data()->prec.size(); i++) {
+      //cout << "array: " << words_used["twice"].word_data()->features[i] << endl;
+      //cout << "list : " << words_used["twice"].word_data()->next() << endl;
+    //}
   } // end if (argv)
   else {
     cout << "Usage: ./words [Input File]" << endl;
@@ -86,7 +86,7 @@ void processfile(string fname, Dict &d) {
           n++;
         } // end if (words)
       } // end for (j)
-      //if (n > 100) break; // early termination for testing
+      if (n > 1000) break; // early termination for testing
     } // end while (infile)
   } // end if (infile)
   else {

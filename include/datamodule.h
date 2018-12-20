@@ -38,7 +38,7 @@ public:
   void   outdata(string);                                         // writes TPR/FPR data to a file
   void   set_weights(Datamodule&);                                // copies the weights
   void   set_weights(Svect&);                                     // sets all of the weights
-  void   set_features(Svect*);                                    // sets the features array pointer (does not deep copy)
+  void   set_features(Svect*);                                    // sets the features array pointer (does NOT deep copy)
 
   int    examples(void);                                          // returns the number of examples in the dataset
   void   display_weights(int = 4);                                // display the current weights

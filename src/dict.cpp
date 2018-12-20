@@ -1,6 +1,14 @@
 
 #include "../include/dict.h"
 
+/*
+** These definitions of the random engine and distribution are used as
+** components of the RAND macro to generate a random number in the
+** semi-open range [0,1).
+*/
+default_random_engine             rand_gen; 
+uniform_real_distribution<double> rand_distr(0.0,1.0);
+
 using namespace std;
 
 /*
@@ -19,12 +27,29 @@ ostream& operator<<(ostream& os, const wordvect& w) {
 } // end operator<<()
 ostream& operator<<(ostream& os, const Dict& d) {
   WVit it = d.words.end();
-  os << "[ ";
+  os << "dict: [ ";
   do { 
     it--; 
     if ((*it).count() > d.thr) os << *it << " "; 
   } while (it != d.words.begin());
-  os << "] " << "<" << d.words.size() << ">";
+  os << "] " << "<" << d.words.size() << ">" << endl << endl;
+
+  os << "test: [ ";
+  it = d.test.begin();
+  while (it != d.test.end()) { 
+    os << *it << " "; 
+    it++; 
+  } 
+  os << "] " << "<" << d.test.size() << ">" << endl << endl;
+
+  os << "train: [ ";
+  it = d.train.begin();
+  while (it != d.train.end()) { 
+     os << *it << " "; 
+    it++; 
+ } 
+  os << "] " << "<" << d.train.size() << ">" << endl << endl;
+
   return os;
 } // end operator<<()
 
@@ -52,9 +77,11 @@ wdata::~wdata(void) { }
 ** The clear() function initializes all data in the wdata struct.  Any data 
 ** currently residing in the struct is lost.
 */
-void wdata::clear(void) { 
-  ct=0;
+void wdata::clear(int s) { 
+  ct = 0;
+  sz = s;
   prec.erase(prec.begin(), prec.end());
+  weights.resize(s);
   clearf();
 } // end clear()
 
@@ -76,6 +103,7 @@ void wdata::clearf(void) {
 void wdata::copy(const wdata &wd) { 
   list<Svect>::const_iterator it;
   ct = wd.ct;
+  sz = wd.sz;
   it = wd.prec.cbegin(); 
   while (it != wd.prec.cend()) { 
     prec.push_front(*it); 
@@ -138,6 +166,9 @@ int wdata::count(void) const { return ct; }
 void wdata::init_weights(double w) { 
   list<Svect>::iterator it;
 
+  // nothing to do if there is no precursor data
+  if (prec.begin() == prec.end()) return; 
+
   it = prec.begin(); 
   weights = *it;
   it++; 
@@ -169,6 +200,14 @@ void wdata::init_logr(double w) {
     features[i++] = *it; 
     it++; 
   } // end while (it)
+
+  // The precursor data (and their associated observations) represent the
+  // positive observations.  Next, the negative observations based on a random
+  // sampling of the rest of the data needs to be appended to the features and
+  // observations data so that an accurate model can be derived.  The positive
+  // observations should be relatively small in size compared to the negative
+  // observations.
+
 } // end init_logr()
 
 /*
@@ -394,6 +433,8 @@ void Dict::clear(void) {
   ptrain = 0.1;
   ptest  = 0.1;
   words.erase(words.begin(),words.end());
+  train.erase(train.begin(),train.end());
+  test.erase(test.begin(),test.end());
 }
 
 /*
@@ -411,6 +452,7 @@ void Dict::thresh(int t) { thr = t; }
 */
 bool Dict::addword(wordvect &w) {
   WVit      it;
+  double    d;
   wdata    *wd;            // temp variable to avoid triggering const violation
 
   it = words.find(w);
@@ -418,6 +460,11 @@ bool Dict::addword(wordvect &w) {
     w.incr();
     w.setord(nord++);
     it = words.insert(w);
+    // there is a certain small chance that a newly created entry will also be
+    // added to either the training or the testing data set (but not both)
+    d = RAND;
+    if      (d < ptrain)         train.insert(w);
+    else if (d < (ptrain+ptest)) test.insert(w);
     return true;           // return true if a new record was added
   }
   else {                   // increment record count if an existing one was found
