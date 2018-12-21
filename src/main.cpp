@@ -12,6 +12,7 @@ int main(int argv, char **argc) {
   Dict   words_used;
   Svect  A,B,C;
   string fname;
+  list<WVit>::iterator it;
 
   if (argv == 2) {
     cout << "Executing with command line arguments: ";
@@ -21,11 +22,17 @@ int main(int argv, char **argc) {
     processfile(fname, words_used);
     words_used.thresh(1);
     cout << "Dictionary:" << endl << words_used << endl;
-    words_used["twice"].solve(0.5);
-    //cout << "list : " << words_used["twice"].word_data()->front() << endl;
-    //for (int i=0; i < words_used["twice"].word_data()->prec.size(); i++) {
-      //cout << "array: " << words_used["twice"].word_data()->features[i] << endl;
-      //cout << "list : " << words_used["twice"].word_data()->next() << endl;
+    words_used["and"].solve(0.5);
+    words_used["and"].word_data()->disp_features();
+    words_used["and"].word_data()->disp_obs();
+    //for (int i=0; i < words_used["and"].word_data()->prec.size(); i++) {
+      //cout << "array: " << words_used["and"].word_data()->features[i] << endl;
+      //cout << "list : " << words_used["and"].word_data()->next() << endl;
+    //}
+    //it = words_used["and"].train->begin();
+    //while (it != words_used["and"].train->end()) {
+      //cout << **it << endl;
+      //it++;
     //}
   } // end if (argv)
   else {
