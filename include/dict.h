@@ -156,8 +156,8 @@ public:
 
 private:
   multiset<wordvect,classcompv> words; // the set of words that make up the dictionary
-  multiset<wordvect,classcompv> train; // the words in the training set (random subset of words)
-  multiset<wordvect,classcompv> test;  // the words in the testing set (random subset of words)
+  list<WVit>                    train; // the words in the training set (random subset of words)
+  list<WVit>                    test;  // the words in the testing set (random subset of words)
   wordvect empty;  // an empty wordvect to return in cases where the requested entry does not exist
   int      nord;   // the next ordinal number
   int      thr;    // count threshold for group operations (like display)

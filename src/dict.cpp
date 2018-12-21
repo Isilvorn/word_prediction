@@ -26,6 +26,7 @@ ostream& operator<<(ostream& os, const wordvect& w) {
   return os; 
 } // end operator<<()
 ostream& operator<<(ostream& os, const Dict& d) {
+  list<WVit>::const_iterator lit;
   WVit it = d.words.end();
   os << "dict: [ ";
   do { 
@@ -35,19 +36,13 @@ ostream& operator<<(ostream& os, const Dict& d) {
   os << "] " << "<" << d.words.size() << ">" << endl << endl;
 
   os << "test: [ ";
-  it = d.test.begin();
-  while (it != d.test.end()) { 
-    os << *it << " "; 
-    it++; 
-  } 
+  lit = d.test.begin();
+  while (lit != d.test.end()) { os << **lit << " "; lit++; } 
   os << "] " << "<" << d.test.size() << ">" << endl << endl;
 
   os << "train: [ ";
-  it = d.train.begin();
-  while (it != d.train.end()) { 
-     os << *it << " "; 
-    it++; 
- } 
+  lit = d.train.begin();
+  while (lit != d.train.end()) { os << **lit << " "; lit++; } 
   os << "] " << "<" << d.train.size() << ">" << endl << endl;
 
   return os;
@@ -176,7 +171,7 @@ void wdata::init_weights(double w) {
     weights += *it; 
     it++; 
   } // end while (lit);
-  weights = w; // overwrite all of the data with the initial weight supplied
+  weights = w; // overwrite all of the explicit data with the initial weight supplied
 } // end init_weights()
 
 
@@ -463,8 +458,8 @@ bool Dict::addword(wordvect &w) {
     // there is a certain small chance that a newly created entry will also be
     // added to either the training or the testing data set (but not both)
     d = RAND;
-    if      (d < ptrain)         train.insert(w);
-    else if (d < (ptrain+ptest)) test.insert(w);
+    if      (d < ptrain)         train.push_front(it);
+    else if (d < (ptrain+ptest)) test.push_front(it);
     return true;           // return true if a new record was added
   }
   else {                   // increment record count if an existing one was found

@@ -465,14 +465,15 @@ bool Svect::resize(int n) {
 } // end resize()
 
 /*
-** The upsize() function resizes the vector but keeps the current data.  The new value
-** must be larger than the current size or the function does nothing.  The new elements
-** will effectively all be zero since an explicit element will not exist.
+** The upsize() function expands the nominal size of vectors and does not
+** destroy any data.  It does not add any explicit elements, so any "new" elements
+** that lie beyond the end of the original vector is a de-facto zero.
 */
-void Svect::upsize(int n) {
-  if (n <= sz) return; // do nothing if the new size is not bigger than the old
-  sz = n;              // set the new size
-} // end upsize()
+bool Svect::upsize(int n) {
+  if (n <= sz) return false;  // do nothing if the new size is not larger
+  sz = n;                     // set the new size
+  return true;
+} // end resize()
 
 /*
 ** The copy() function copies the data of one vector to another and returns "true"

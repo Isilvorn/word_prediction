@@ -93,7 +93,7 @@ public:
   void   remove(int);                // removes an explicit element (sets it to zero)
   multiset<Datapoint>::iterator remove(multiset<Datapoint>::iterator&);
   bool   resize(int);                // discards the data and sets the vector size to a new value
-  void   upsize(int);                // sets a new value for the vector size but keeps the data
+  bool   upsize(int);                // sets a new value for the vector size but keeps the data
   bool   copy(const Svect&);         // copies the data from an input vector to this one
   double sum(void);                  // returns the summation of all elements of this vector
   void   exp_elem(void);             // takes the exponential function of every element
