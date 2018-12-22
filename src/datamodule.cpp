@@ -245,6 +245,21 @@ void Datamodule::outdata(string fname) {
 void Datamodule::set_weights(Datamodule &dm) { wvec = dm.wvec; }
 
 /*
+** Set the weights from an externally supplied vector.
+*/
+void Datamodule::set_weights(Svect &w) { wvec = w; }
+
+/*
+** Set the features pointer to an externally supplied value.
+*/
+void Datamodule::set_features(Svect *f) { xvec = f; }
+
+/*
+** Set the observations from an externally supplied vector.
+*/
+void Datamodule::set_observations(Svect &o) { yvec = o; }
+
+/*
 ** The predictive function. "y" is the output in this case.
 */
 void Datamodule::pred(void) {

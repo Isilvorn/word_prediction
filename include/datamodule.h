@@ -25,27 +25,28 @@ using namespace std;
 
 class Datamodule {
 public:
-  Datamodule();                                                   // default constructor
-  ~Datamodule();                                                  // destructor
+  Datamodule();                                   // default constructor
+  ~Datamodule();                                  // destructor
 
-  bool   read_input(char **, bool = true);                        // read_input reads input files
-  void   LLcomp(Svect&, Svect&, Svect&, Svect*);                  // calc objective function components
-  double LL(Svect&, Svect&, Svect*);                              // returns the objective function sum
-  int    getsoln(double = 0.001, int = 100);                      // iterate to a solution: 
-  void   pred(void);                                              // the predictive function
-  void   apply_threshold(double = 0.999);                         // apply a threshold limiter to results
-  void   calc_conf(double* = nullptr);                            // calculate confusion numbers
-  void   outdata(string);                                         // writes TPR/FPR data to a file
-  void   set_weights(Datamodule&);                                // copies the weights
-  void   set_weights(Svect&);                                     // sets all of the weights
-  void   set_features(Svect*);                                    // sets the features array pointer (does NOT deep copy)
+  bool   read_input(char **, bool = true);        // read_input reads input files
+  void   LLcomp(Svect&, Svect&, Svect&, Svect*);  // calc objective function components
+  double LL(Svect&, Svect&, Svect*);              // returns the objective function sum
+  int    getsoln(double = 0.001, int = 100);      // iterate to a solution: 
+  void   pred(void);                              // the predictive function
+  void   apply_threshold(double = 0.999);         // apply a threshold limiter to results
+  void   calc_conf(double* = nullptr);            // calculate confusion numbers
+  void   outdata(string);                         // writes TPR/FPR data to a file
+  void   set_weights(Datamodule&);                // copies the weights
+  void   set_weights(Svect&);                     // sets all of the weights
+  void   set_features(Svect*);                    // sets the features array pointer (does NOT deep copy)
+  void   set_observations(Svect&);                // sets the observations data                
 
-  int    examples(void);                                          // returns the number of examples in the dataset
-  void   display_weights(int = 4);                                // display the current weights
-  void   display_observations(void);                              // display the observations vector
-  void   display_features(int = 4);                               // display the features matrix
-  void   display_results(void);                                   // display the results vector
-  void   display_confusion(void);                                 // display the confusion matrix
+  int    examples(void);                          // returns the number of examples in the dataset
+  void   display_weights(int = 4);                // display the current weights
+  void   display_observations(void);              // display the observations vector
+  void   display_features(int = 4);               // display the features matrix
+  void   display_results(void);                   // display the results vector
+  void   display_confusion(void);                 // display the confusion matrix
 
   friend int xmat_split(Datamodule&, double, Datamodule&, Datamodule&);
 

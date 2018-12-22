@@ -22,6 +22,7 @@ int main(int argv, char **argc) {
     processfile(fname, words_used);
     words_used.thresh(1);
     cout << "Dictionary:" << endl << words_used << endl;
+    fflush(stdout);
     words_used["and"].solve(0.5);
     words_used["and"].word_data()->disp_features();
     words_used["and"].word_data()->disp_obs();
