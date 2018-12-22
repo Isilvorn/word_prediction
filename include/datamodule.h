@@ -40,6 +40,7 @@ public:
   void   set_weights(Svect&);                     // sets all of the weights
   void   set_features(Svect*);                    // sets the features array pointer (does NOT deep copy)
   void   set_observations(Svect&);                // sets the observations data                
+  void   get_weights(Svect&);                     // gets the calculated weights
 
   int    examples(void);                          // returns the number of examples in the dataset
   void   display_weights(int = 4);                // display the current weights

@@ -70,8 +70,8 @@ void Dict::clear(void) {
   empty = "@";
   nord = 0;
   thr = 0;
-  ptrain = 0.1;
-  ptest  = 0.1;
+  ptrain = 0.18;
+  ptest  = 0.18;
   words.erase(words.begin(),words.end());
   train.erase(train.begin(),train.end());
   test.erase(test.begin(),test.end());

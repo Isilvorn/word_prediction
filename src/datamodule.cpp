@@ -260,6 +260,11 @@ void Datamodule::set_features(Svect *f) { xvec = f; }
 void Datamodule::set_observations(Svect &o) { yvec = o; }
 
 /*
+** Get the weights that were calculated.
+*/
+void Datamodule::get_weights(Svect &w) { w = wvec; }
+
+/*
 ** The predictive function. "y" is the output in this case.
 */
 void Datamodule::pred(void) {
@@ -345,7 +350,7 @@ void Datamodule::display_confusion(void) {
     fn = cvec[FN];
 
     cout << setprecision(1) << fixed << endl;
-    cout << "                  Training Confusion Matrix" << endl;
+    cout << "                          Confusion Matrix" << endl;
     cout << "        +-----------------------------------------------+" << endl;
     cout << "        |             |             actual              |" << endl;
     cout << "        +-------------+---------------------------------+" << endl;
