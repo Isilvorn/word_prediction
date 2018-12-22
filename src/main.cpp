@@ -12,6 +12,7 @@ int main(int argv, char **argc) {
   Dict   words_used;
   Svect  A,B,C;
   string fname;
+  double thr;
   list<WVit>::iterator it;
 
   if (argv == 2) {
@@ -26,7 +27,9 @@ int main(int argv, char **argc) {
     words_used["and"].solve(0.5, true);
     words_used["and"].word_data()->disp_features();
     words_used["and"].word_data()->disp_obs();
-    words_used["and"].testsoln(0.5);
+    thr = words_used["and"].find_optimal();
+    cout << "Optimal threshold: " << setprecision(4) << fixed << thr << endl;
+    words_used["and"].testsoln(thr);
     //for (int i=0; i < words_used["and"].word_data()->prec.size(); i++) {
       //cout << "array: " << words_used["and"].word_data()->features[i] << endl;
       //cout << "list : " << words_used["and"].word_data()->next() << endl;
