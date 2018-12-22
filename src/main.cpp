@@ -1,8 +1,12 @@
+#include <ctime>
+#include <chrono>
+#include <ratio>
 
 #include "../include/datamodule.h"
 #include "../include/dict.h"
 
 using namespace std;
+using namespace std::chrono;
 
 void   processfile(string, Dict&);
 string cleanword(string);
@@ -15,6 +19,7 @@ int main(int argv, char **argc) {
   double thr;
   list<WVit>::iterator it;
 
+
   if (argv == 2) {
     cout << "Executing with command line arguments: ";
     for (int i=0; i<argv; i++) cout << argc[i] << " ";
@@ -24,21 +29,18 @@ int main(int argv, char **argc) {
     words_used.thresh(1);
     cout << "Dictionary:" << endl << words_used << endl;
     fflush(stdout);
+
+    steady_clock::time_point t1 = steady_clock::now();
     words_used["and"].solve(0.5, true);
-    words_used["and"].word_data()->disp_features();
-    words_used["and"].word_data()->disp_obs();
+    steady_clock::time_point t2 = steady_clock::now();
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+    cout << endl << "Elapsed calculation time: " << time_span.count() << " seconds." << endl;
+
+    //words_used["and"].word_data()->disp_features();
+    //words_used["and"].word_data()->disp_obs();
     thr = words_used["and"].find_optimal();
-    cout << "Optimal threshold: " << setprecision(4) << fixed << thr << endl;
+    cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
     words_used["and"].testsoln(thr);
-    //for (int i=0; i < words_used["and"].word_data()->prec.size(); i++) {
-      //cout << "array: " << words_used["and"].word_data()->features[i] << endl;
-      //cout << "list : " << words_used["and"].word_data()->next() << endl;
-    //}
-    //it = words_used["and"].train->begin();
-    //while (it != words_used["and"].train->end()) {
-      //cout << **it << endl;
-      //it++;
-    //}
   } // end if (argv)
   else {
     cout << "Usage: ./words [Input File]" << endl;
