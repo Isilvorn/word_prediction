@@ -36,7 +36,7 @@ int main(int argv, char **argc) {
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
     cout << endl << "Elapsed calculation time: " << time_span.count() << " seconds." << endl;
 
-    //words_used["and"].word_data()->disp_features();
+    words_used["and"].word_data()->disp_features();
     //words_used["and"].word_data()->disp_obs();
     thr = words_used["and"].find_optimal();
     cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
