@@ -26,7 +26,7 @@ int main(int argv, char **argc) {
     cout << endl << endl;
     fname = argc[1];
     processfile(fname, words_used);
-    words_used.thresh(1);
+    words_used.thresh(0);
     cout << "Dictionary:" << endl << words_used << endl;
     fflush(stdout);
 
@@ -41,6 +41,10 @@ int main(int argv, char **argc) {
     thr = words_used["and"].find_optimal();
     cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
     words_used["and"].testsoln(thr);
+    cout << "Dictionary before reading: " << endl << words_used << endl;
+    words_used.write();
+    words_used.read();
+    cout << "Dictionary after reading: " << endl << words_used << endl;
     //words_used["and"].write();
   } // end if (argv)
   else {

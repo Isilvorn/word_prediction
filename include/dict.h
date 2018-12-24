@@ -35,18 +35,20 @@ using namespace std::rel_ops;
 */
 class Dict {
 public:
-  Dict();                         // default constructor
-  ~Dict();                        // destructor (does nothing)
+  Dict();                                 // default constructor
+  ~Dict();                                // destructor (does nothing)
 
-  void      clear(void);          // clears all data in the dict
-  void      thresh(int=0);        // sets the threshold for group operations
-  int       thresh(void);         // gets the current threshold
-  bool      addword(wordvect&);   // adds a word to the dictionary
+  void      clear(void);                  // clears all data in the dict
+  void      thresh(int=0);                // sets the threshold for group operations
+  int       thresh(void);                 // gets the current threshold
+  bool      addword(wordvect&,bool=true); // adds a word to the dictionary
   bool      addword(string);
-  bool      exist(string);        // returns true if the word is already added
-  WVit      find(wordvect&);      // finds an entry in the dictionary and returns an iterator
+  bool      exist(string);                // returns true if the word is already added
+  WVit      find(wordvect&);              // finds an entry in the dictionary and returns an iterator
   WVit      find(string);
-  const wordvect& get(wordvect&); // finds an entry in the dictionary and returns a reference to that item
+  void      write(void);                  // writes the dictionary index file to the dict directory
+  void      read(void);                   // reads the dictionary index file from the dict directory
+  const wordvect& get(wordvect&);         // finds an entry in the dictionary and returns a reference to that item
   const wordvect& get(string);
 
   // allows accessing an individual element via brackets
@@ -56,10 +58,10 @@ public:
 
   friend ostream& operator<<(ostream&,const Dict&); // outputs all elements to a stream
 
-  list<WVit>                    train; // the words in the training set (random subset of words)
-  list<WVit>                    test;  // the words in the testing set (random subset of words)
+  list<WVit>                    train;    // the words in the training set (random subset of words)
+  list<WVit>                    test;     // the words in the testing set (random subset of words)
 private:
-  multiset<wordvect,classcompv> words; // the set of words that make up the dictionary
+  multiset<wordvect,classcompv> words;    // the set of words that make up the dictionary
   wordvect empty;  // an empty wordvect to return in cases where the requested entry does not exist
   int      nord;   // the next ordinal number
   int      thr;    // count threshold for group operations (like display)

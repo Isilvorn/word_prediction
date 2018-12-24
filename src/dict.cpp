@@ -90,7 +90,7 @@ void Dict::thresh(int t) { thr = t; }
 ** Returns TRUE if the wordvect was required to be added to the dictionary, 
 ** and FALSE if it was already in the dictionary.
 */
-bool Dict::addword(wordvect &w) {
+bool Dict::addword(wordvect &w, bool neword) {
   WVit      it;
   double    d;
   wdata    *wd;            // temp variable to avoid triggering const violation
@@ -98,7 +98,7 @@ bool Dict::addword(wordvect &w) {
   it = words.find(w);
   if (it == words.end()) { // add a new record if an existing one was not found
     w.incr();
-    w.setord(nord++);
+    if (neword) w.setord(nord++);
     w.set_train(&train);
     w.set_test(&test);
     it = words.insert(w);
@@ -150,6 +150,82 @@ WVit Dict::find(string sw) {
   wordvect temp(sw);
   return(find(temp));
 }
+
+/*
+** The write() function writes the dictionary index to a file in the "dict"
+** subdirectory.  This file can be later read in to reconstruct the multiset.
+*/
+void Dict::write(void) {
+  wordvect wv;
+  WVit     it;
+  ofstream ofile;
+  outint   iout_sz, iout_ord, iout_len;
+  char     charout[50];
+  string   word;
+
+  ofile.open("dict\\dict.idx", ios::out | ios::binary);
+  if (ofile.is_open()) {
+    iout_sz.i = words.size();
+    ofile.write(&iout_sz.c[0],4);
+    it = words.begin();
+    while (it != words.end()) {
+      word = it->str();
+      iout_ord.i = it->getord();
+      strcpy(charout,word.c_str());
+      //cout << charout << ": " << iout_ord.i << "(";
+      iout_len.i = word.length();
+      //cout << iout_len.i << ")" << endl;
+      ofile.write(&iout_ord.c[0],4);
+      ofile.write(&iout_len.c[0],4);
+      ofile.write(&charout[0],iout_len.i);
+      it++;
+    } // end while (it)
+    ofile.close();
+  } // end if (ofile)
+  else {
+    cerr << "Error opening \"dict\\dict.idx\" index file for output." << endl;
+  } // end else (ofile)
+} // end write()
+
+/*
+** The read() function reads the dictionary index from a file in the "dict"
+** subdirectory; this file was written earlier after training the model.
+** Note that this function will destroy the current contents of this Dict
+** instance.
+*/
+void Dict::read(void) {
+  wordvect wv;
+  WVit     it;
+  ifstream ifile;
+  outint   iout_sz, iout_ord, iout_len;
+  char     charout[50];
+  string   word;
+  int      maxord = 0;
+
+  ifile.open("dict\\dict.idx", ios::in | ios::binary);
+  if (ifile.is_open()) {
+    clear();
+    ifile.read(&iout_sz.c[0],4);
+    for (int i=0; i<iout_sz.i; i++) {
+      ifile.read(&iout_ord.c[0],4);
+      ifile.read(&iout_len.c[0],4);
+      ifile.read(&charout[0],iout_len.i);
+      charout[iout_len.i] = 0;
+      if (iout_ord.i >= maxord) maxord = iout_ord.i + 1;
+       word = charout;
+      wv.clear();
+      wv = word;
+      wv.setord(iout_ord.i);
+      //cout << wv << endl;
+      addword(wv, false);
+    } // end for (i)
+    ifile.close();
+    nord = maxord;
+  } // end if (ifile)
+  else {
+    cerr << "Error opening \"dict\\dict.idx\" index file for output." << endl;
+  } // end else (ofile)
+} // end write()
 
 /*
 ** The get() functions return a wordvect from the dictionary that matches a 
