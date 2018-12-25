@@ -1,0 +1,8 @@
+Exit
+Load data source
+Read dictionary index from disk
+Show dictionary
+Show last features set
+Show last observations set
+Calculate next N regressions
+Test solution for last regression
