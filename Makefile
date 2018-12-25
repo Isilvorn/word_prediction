@@ -1,12 +1,16 @@
 all: words
 
-words: temp/words.o temp/vect.o temp/dict.o temp/datamodule.o temp/wdata.o temp/wordvect.o
+words: temp/words.o temp/vect.o temp/dict.o temp/datamodule.o temp/wdata.o temp/wordvect.o temp/menu.o
 	g++ -std=c++11 -g temp/words.o temp/vect.o temp/dict.o temp/datamodule.o \
-	                  temp/wdata.o temp/wordvect.o -o words
+	                  temp/wdata.o temp/wordvect.o temp/menu.o -o words
 
-temp/words.o: src/main.cpp include/dict.h
+temp/words.o: src/main.cpp include/dict.h include/datamodule.h include/menu.h
 	g++ -std=c++11 -c src/main.cpp
 	mv main.o temp/words.o
+
+temp/menu.o: src/menu.cpp include/menu.h
+	g++ -std=c++11 -c src/menu.cpp
+	mv menu.o temp/menu.o
 
 temp/vect.o: src/vect.cpp include/vect.h
 	g++ -std=c++11 -c src/vect.cpp

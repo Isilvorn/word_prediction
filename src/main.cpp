@@ -4,6 +4,7 @@
 
 #include "../include/datamodule.h"
 #include "../include/dict.h"
+#include "../include/menu.h"
 
 using namespace std;
 using namespace std::chrono;
@@ -13,43 +14,93 @@ string cleanword(string);
 int    parse(string, string[]);
 
 int main(int argv, char **argc) {
+  Menu   mainMenu;
   Dict   words_used;
-  Svect  A,B,C;
-  string fname;
+  int    idx=0,N=1;
+  string fname = "war_and_peace.txt", lastword="and", nextword="and";
   double thr;
   list<WVit>::iterator it;
-
+  steady_clock::time_point t1, t2;
+  duration<double> time_span;
 
   if (argv == 2) {
     cout << "Executing with command line arguments: ";
     for (int i=0; i<argv; i++) cout << argc[i] << " ";
-    cout << endl << endl;
     fname = argc[1];
-    processfile(fname, words_used);
-    words_used.thresh(0);
-    cout << "Dictionary:" << endl << words_used << endl;
-    fflush(stdout);
-
-    steady_clock::time_point t1 = steady_clock::now();
-    words_used["and"].solve(0.5, true);
-    steady_clock::time_point t2 = steady_clock::now();
-    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
-    cout << endl << "Elapsed calculation time: " << time_span.count() << " seconds." << endl;
-
-    //words_used["and"].word_data()->disp_features();
-    //words_used["and"].word_data()->disp_obs();
-    thr = words_used["and"].find_optimal();
-    cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
-    words_used["and"].testsoln(thr);
-    cout << "Dictionary before reading: " << endl << words_used << endl;
-    words_used.write();
-    words_used.read();
-    cout << "Dictionary after reading: " << endl << words_used << endl;
-    //words_used["and"].write();
+    cout << endl << "Substituting \"" << fname << "\" for default data source." <<endl << endl;
   } // end if (argv)
-  else {
-    cout << "Usage: ./words [Input File]" << endl;
-  } // end else (argv)
+
+  mainMenu.load("menu.txt");
+  do {
+
+    switch(idx) {
+      case 1: // loading data source
+        cout << "Processing data source...";
+        fflush(stdout);
+        t1 = steady_clock::now();
+        processfile(fname, words_used);
+        t2 = steady_clock::now();
+        cout << "Done." << endl;
+        words_used.thresh(0);
+        time_span = duration_cast<duration<double>>(t2 - t1);
+        cout << endl << "Elapsed time: " << time_span.count() << " seconds." << endl;
+        cout << "Writing dictionary index to disk...";
+        fflush(stdout);
+        words_used.write();
+        cout << "Done." << endl << endl;
+       break;
+      case 2: // loading dictionary from disk
+        cout << "Loading dictionary index from disk...";
+        fflush(stdout);
+        words_used.read();
+        cout << "Done." << endl;
+        break;
+      case 3:
+        cout << "Dictionary:" << endl << endl << words_used << endl << endl;
+        break;
+      case 4:
+        cout << endl;
+        words_used[lastword].word_data()->disp_features();
+        cout << endl;
+        break;
+      case 5:
+        cout << endl;
+        words_used[lastword].word_data()->disp_obs();
+        cout << endl;
+        break;
+      case 6:
+        cout << "Computing model for \"" << nextword << "\" (this might take a while)..." << endl;
+        fflush(stdout);
+        t1 = steady_clock::now();
+        words_used[nextword].solve(0.5, true);
+        thr = words_used[nextword].find_optimal();
+        t2 = steady_clock::now();
+        cout << endl << "Done." << endl << endl;
+        words_used.thresh(0);
+        time_span = duration_cast<duration<double>>(t2 - t1);
+        cout << endl << "Elapsed time: " << time_span.count() << " seconds." << endl;
+        cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
+        cout << "Writing regression model for \"" << nextword << "\" to disk...";
+        fflush(stdout);
+        words_used[nextword].write();
+        cout << "Done." << endl << endl;
+        break;
+      case 7:
+        cout << "Testing solution for \"" << lastword << "\"..." << endl;
+        fflush(stdout);
+        words_used[lastword].testsoln(thr);
+        cout << endl << "Done." << endl << endl;
+
+        break;
+    }
+
+    mainMenu.draw(0,50);
+    mainMenu.addenda("Data Source: " + fname,false);
+    mainMenu.addenda("Work queue : ",N,2,false);    
+    mainMenu.addenda("Last word  : " + lastword,false);
+    mainMenu.addenda("Next word  : " + nextword,true);
+
+  } while ((idx=mainMenu.prompt()) != 0);
 
   return 0;
 } // end main()
