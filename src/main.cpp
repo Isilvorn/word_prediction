@@ -14,11 +14,12 @@ string cleanword(string);
 int    parse(string, string[]);
 
 int main(int argv, char **argc) {
-  Menu   mainMenu;
-  Dict   words_used;
-  int    idx=0,N=1;
-  string fname = "war_and_peace.txt", lastword="and", nextword="and";
-  double thr;
+  Menu           mainMenu;
+  Dict           words_used;
+  int            idx=0,N=1;
+  string         fname = "war_and_peace.txt", lastword="and", nextword="and";
+  double         thr;
+
   list<WVit>::iterator it;
   steady_clock::time_point t1, t2;
   duration<double> time_span;
@@ -83,6 +84,8 @@ int main(int argv, char **argc) {
         cout << "Writing regression model for \"" << nextword << "\" to disk...";
         fflush(stdout);
         words_used[nextword].write();
+        lastword = nextword;
+        nextword = words_used.getnew();
         cout << "Done." << endl << endl;
         break;
       case 7:
@@ -90,7 +93,9 @@ int main(int argv, char **argc) {
         fflush(stdout);
         words_used[lastword].testsoln(thr);
         cout << endl << "Done." << endl << endl;
-
+        break;
+      case 8:
+        nextword = words_used.getnew();
         break;
     }
 

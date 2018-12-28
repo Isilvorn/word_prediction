@@ -45,6 +45,14 @@ ostream& operator<<(ostream& os, const Dict& d) {
 } // end operator<<()
 
 /*
+** The byfreq() funnction is a comparator function for sorting the priority
+** list by frequency.
+*/
+bool byfreq(WVit first, WVit second) { 
+  if (first->count() > second->count()) return true; else return false; 
+}
+
+/*
 ******************************************************************************
 ********************* Dict CLASS DEFINITION BELOW HERE ***********************
 ******************************************************************************
@@ -54,7 +62,7 @@ ostream& operator<<(ostream& os, const Dict& d) {
 ** The default constructor uses the clear() function to initialize all data in
 ** the dictionary.
 */
-Dict::Dict() { clear(); }
+Dict::Dict() { clear(); loadnix("nixlist.txt"); }
 /*
 ** Destructor (does nothing - there is no dynamic data other than the multiset
 ** which has its own destructor).
@@ -75,6 +83,7 @@ void Dict::clear(void) {
   words.erase(words.begin(),words.end());
   train.erase(train.begin(),train.end());
   test.erase(test.begin(),test.end());
+  prioritized = false;
 }
 
 /*
@@ -95,6 +104,7 @@ bool Dict::addword(wordvect &w, bool neword) {
   double    d;
   wdata    *wd;            // temp variable to avoid triggering const violation
 
+  prioritized = false;     // makes any existing prioritization invalid
   it = words.find(w);
   if (it == words.end()) { // add a new record if an existing one was not found
     w.incr();
@@ -227,6 +237,83 @@ void Dict::read(void) {
   } // end else (ofile)
 } // end write()
 
+/*
+**
+*/
+void Dict::loadnix(string fname) {
+  ifstream ifile;
+  string   instring;
+
+  nix.erase(nix.begin(),nix.end());
+  ifile.open(fname);
+  if (ifile.is_open()) {
+    while (!ifile.eof()) {
+      ifile >> instring;
+      nix.insert(instring);
+    }
+    ifile.close();
+
+    //cout << "NIX LIST:" << endl;
+    //multiset<string>::iterator it;
+    //it = nix.begin();
+    //while (it != nix.end()) {
+    //  cout << *it << endl;
+    //  it++;
+    //}
+  } // end if (ifile)
+} // end loadnix()
+
+/*
+** The prioritize() function creates a priority list of iterators sorted by word frequency
+** that point directly to the corresponding word in the dictionary.
+*/
+void Dict::prioritize() {
+  WVit     wit;
+  string   fname, entry;
+  ifstream ifile;
+  bool     nixed;
+  cout << "prioritizing..." << endl;
+  // erasing any previous priority list
+  prilist.erase(prilist.begin(),prilist.end());
+
+  wit = words.begin();
+  while (wit != words.end()) {
+    entry = wit->str();
+    // checking to see whether this word has been explicitly deprioritized
+    if (nix.find(entry) != nix.end()) nixed = true; else nixed = false;
+    if (!nixed) {
+      fname = "dict\\" + entry + ".dat";
+      ifile.open(fname);
+      if (ifile.is_open()) ifile.close();
+      else                 prilist.push_front(wit);
+    } // end if (nixed)
+    wit++;
+  } // end while (wit)
+  prilist.sort(byfreq);
+
+  //cout << "Priority list:" << endl;
+  //list<WVit>::iterator it;
+  //it = prilist.begin();
+  //while (it != prilist.end()) {
+  //  cout << **it << endl;
+  //  it++;
+  //}
+  //prioritized = true;
+
+} // end prioritize
+
+/*
+** The getnew() function gets the string component of the next word in the 
+** priority list that has not been regressed.  The word that is returned is 
+** popped off of the priority list.
+*/
+string Dict::getnew() {
+  string retstring;
+  if (!prioritized) prioritize(); // if there is not a valid prioritization, create one
+  retstring = prilist.front()->str();
+  prilist.erase(prilist.begin());
+  return retstring;
+}
 /*
 ** The get() functions return a wordvect from the dictionary that matches a 
 ** search template. The first version uses another wordvect as a search template, 
