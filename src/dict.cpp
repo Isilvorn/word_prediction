@@ -298,7 +298,8 @@ void Dict::prioritize() {
   //  cout << **it << endl;
   //  it++;
   //}
-  //prioritized = true;
+
+  prioritized = true;
 
 } // end prioritize
 
