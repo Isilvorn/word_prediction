@@ -13,6 +13,19 @@ union outdbl { char c[8]; double d;  };
 union outint { char c[4]; int32_t i; };
 
 /*
+** The following definition allows the compiler to make some small changes
+** based on which platform is being used.  Things like file name formatting
+** are affected.
+** 1 = Linux
+** 2 = Windows
+*/
+#define LINUX    1
+#define WINDOWS  2
+// change the following definition to reflect the compilation platform
+#define PLATFORM LINUX
+#define IS_PLATFORM(A) (PLATFORM==A)
+
+/*
 ** The "wordvect" structure stores the word vector and associated data.  Once the
 ** wordvect is written to the dictionary, the only data that is allowed to be
 ** changed is the data contained in the "wdata" substructure.  This guarantees

@@ -46,7 +46,7 @@ public:
   int         fsize;            // current size of the features vector
   Svect       weights;          // the weights calculated via logistic regession for predicting
                                 // this word based on its list of precursor words
-  Svect      *features;         // the features vector collection used in the logistic regression
+  Svect       features[500];    // the features vector collection used in the logistic regression
   Svect       obs;              // the observations vector used in the logistic regression
 };
 

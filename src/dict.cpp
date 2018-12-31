@@ -171,9 +171,14 @@ void Dict::write(void) {
   ofstream ofile;
   outint   iout_sz, iout_ord, iout_len;
   char     charout[50];
-  string   word;
+  string   word, path;
 
-  ofile.open("dict\\dict.idx", ios::out | ios::binary);
+  if (IS_PLATFORM(LINUX)) 
+    path = "dict/dict.idx";
+  else if (IS_PLATFORM(WINDOWS))
+    path = "dict\\dict.idx";
+
+  ofile.open(path, ios::out | ios::binary);
   if (ofile.is_open()) {
     iout_sz.i = words.size();
     ofile.write(&iout_sz.c[0],4);
@@ -193,7 +198,7 @@ void Dict::write(void) {
     ofile.close();
   } // end if (ofile)
   else {
-    cerr << "Error opening \"dict\\dict.idx\" index file for output." << endl;
+    cerr << "Error opening \"" << path << "\" index file for output." << endl;
   } // end else (ofile)
 } // end write()
 
@@ -209,10 +214,15 @@ void Dict::read(void) {
   ifstream ifile;
   outint   iout_sz, iout_ord, iout_len;
   char     charout[50];
-  string   word;
+  string   word, path;
   int      maxord = 0;
 
-  ifile.open("dict\\dict.idx", ios::in | ios::binary);
+  if (IS_PLATFORM(LINUX)) 
+    path = "dict/dict.idx";
+  else if (IS_PLATFORM(WINDOWS))
+    path = "dict\\dict.idx";
+
+  ifile.open(path, ios::in | ios::binary);
   if (ifile.is_open()) {
     clear();
     ifile.read(&iout_sz.c[0],4);
@@ -233,7 +243,7 @@ void Dict::read(void) {
     nord = maxord;
   } // end if (ifile)
   else {
-    cerr << "Error opening \"dict\\dict.idx\" index file for output." << endl;
+    cerr << "Error opening \"" << path << "\" index file for output." << endl;
   } // end else (ofile)
 } // end write()
 
@@ -282,7 +292,10 @@ void Dict::prioritize() {
     // checking to see whether this word has been explicitly deprioritized
     if (nix.find(entry) != nix.end()) nixed = true; else nixed = false;
     if (!nixed) {
-      fname = "dict\\" + entry + ".dat";
+      if (IS_PLATFORM(LINUX)) 
+        fname = "dict/" + entry + ".dat";
+      else if (IS_PLATFORM(WINDOWS))
+        fname = "dict\\" + entry + ".dat";
       ifile.open(fname);
       if (ifile.is_open()) ifile.close();
       else                 prilist.push_front(wit);

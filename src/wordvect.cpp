@@ -230,7 +230,6 @@ void wordvect::solve(double d, bool verbose) const {
 
   w = wd; 
   w->init_logr(d); 
-
   // For each word in the training set, adding the precursors that go with that
   // particular word to the features if the ordinal does not match the word
   // in this instance.  These are the negative observations, while the 
@@ -309,7 +308,7 @@ double wordvect::find_optimal(void) const {
   wdata               *w;
   int                  niter;
   double               thr, tpr, fpr, dist, optDIST, optTPR, optFPR, optTHR, 
-					   res[4];
+					             res[4];
 
   w = wd; 
   w->init_logr(0); 
@@ -318,6 +317,7 @@ double wordvect::find_optimal(void) const {
   // particular word to the features if the ordinal does  not match the word in 
   // this instance.  These are the negative observations, while the init_logr() 
   // function initialized the positive observation data.
+
   lit = test->begin();
   while (lit != test->end()) {
   	if (ord != (**lit).ord) {
@@ -343,6 +343,7 @@ double wordvect::find_optimal(void) const {
 	if (dist < optDIST) 
 		{ optDIST = dist; optTPR = tpr; optFPR = fpr; optTHR = thr; }
   } // end for (i)
+
   return optTHR;
 }
 
@@ -365,9 +366,14 @@ void wordvect::write(void) const {
   wdata *w = wd;
   outdbl dout;
   outint iout;
+  string fname;
   int    expl, sz, position, index, composite;
 
-  string   fname = "dict\\" + entry + ".dat";
+  if (IS_PLATFORM(LINUX)) 
+    fname = "dict/" + entry + ".dat";
+  else if (IS_PLATFORM(WINDOWS))
+    fname = "dict\\" + entry + ".dat";
+
   ofile.open(fname, ios::out | ios::binary);
   if (ofile.is_open()) {
   	expl = w->weights.count_explicit();
@@ -401,9 +407,14 @@ void wordvect::read(void) const {
   wdata *w = wd;
   outdbl dout;
   outint iout;
-  int expl, sz, position, index, composite;
+  string fname;
+  int    expl, sz, position, index, composite;
 
-  string   fname = "dict\\" + entry + ".dat";
+  if (IS_PLATFORM(LINUX)) 
+    fname = "dict/" + entry + ".dat";
+  else if (IS_PLATFORM(WINDOWS))
+    fname = "dict\\" + entry + ".dat";
+
   ifile.open(fname, ios::in | ios::binary);
   if (ifile.is_open()) {
   	ifile.read(&iout.c[0],4);

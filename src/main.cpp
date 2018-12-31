@@ -17,7 +17,7 @@ int main(int argv, char **argc) {
   Menu           mainMenu;
   Dict           words_used;
   int            idx=0,N=1;
-  string         fname = "war_and_peace.txt", lastword="and", nextword="and";
+  string         fname = "war_and_peace.txt", lastword="", nextword="";
   double         thr;
 
   list<WVit>::iterator it;
@@ -49,6 +49,7 @@ int main(int argv, char **argc) {
         fflush(stdout);
         words_used.write();
         cout << "Done." << endl << endl;
+        nextword = words_used.getnew();
        break;
       case 2: // loading dictionary from disk
         cout << "Loading dictionary index from disk...";
@@ -70,22 +71,25 @@ int main(int argv, char **argc) {
         cout << endl;
         break;
       case 6:
-        cout << "Computing model for \"" << nextword << "\" (this might take a while)..." << endl;
-        fflush(stdout);
-        t1 = steady_clock::now();
-        words_used[nextword].solve(0.5, true);
-        thr = words_used[nextword].find_optimal();
-        t2 = steady_clock::now();
-        cout << endl << "Done." << endl << endl;
         words_used.thresh(0);
-        time_span = duration_cast<duration<double>>(t2 - t1);
-        cout << endl << "Elapsed time: " << time_span.count() << " seconds." << endl;
-        cout <<"Optimal threshold: " << setprecision(4) << fixed << thr << endl << endl;
-        cout << "Writing regression model for \"" << nextword << "\" to disk...";
-        fflush(stdout);
-        words_used[nextword].write();
-        lastword = nextword;
-        nextword = words_used.getnew();
+        for (int i = 0; i < N; i++) {
+          cout << "Computing model for \"" << nextword << "\" (this might take a while)..." << endl;
+          fflush(stdout);
+          t1 = steady_clock::now();
+          words_used[nextword].solve(0.5, true);
+          thr = words_used[nextword].find_optimal();
+          t2 = steady_clock::now();
+          cout << endl << "Done." << endl << endl;
+          time_span = duration_cast<duration<double>>(t2 - t1);
+          cout << endl << "Elapsed time: " << time_span.count() << " seconds." << endl;
+          cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
+               << endl << endl;
+          cout << "Writing regression model for \"" << nextword << "\" to disk...";
+          fflush(stdout);
+          words_used[nextword].write();
+          lastword = nextword;
+          nextword = words_used.getnew();
+        } // end for (i)
         cout << "Done." << endl << endl;
         break;
       case 7:
@@ -95,7 +99,9 @@ int main(int argv, char **argc) {
         cout << endl << "Done." << endl << endl;
         break;
       case 8:
-        nextword = words_used.getnew();
+        cout << "Current work queue size is " << N << "." << endl;
+        cout << "Please enter a new size > ";
+        cin  >> N;
         break;
     }
 

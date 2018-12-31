@@ -12,10 +12,7 @@
 ** The default constructor uses the clear() function to initialize the mutable 
 ** word data.
 */
-wdata::wdata(void)  { 
-  features = nullptr; 
-  clear(); 
-} // end default constructor
+wdata::wdata(void)  { clear(); }
 
 /*
 ** Destructor (does nothing).
@@ -31,19 +28,7 @@ void wdata::clear(int s) {
   sz = s;
   prec.erase(prec.begin(), prec.end());
   weights.resize(s);
-  clearf();
 } // end clear()
-
-/*
-** The clearf() function initializes the features data.  This array is only
-** ever meant to be a temporary container to hold the features used in the
-** logistic regression calculation.  Once the weights are obtained, this
-** data may be discarded.
-*/
-void wdata::clearf(void) {
-  if (features != nullptr) delete features;
-  features = nullptr;
-} // end clearf()
 
 /*
 ** The copy() function copies all data from another wdata struct to this
@@ -138,15 +123,14 @@ void wdata::init_logr(double w) {
   int i = 0; 
 
   if (w != 0) init_weights(w);
-
-  clearf();                          // clear any features that already exist
   fmax = 10*prec.size();             // setting max size of features vector
-  features = new Svect[fmax];        // allocate a new array of vectors
+  if (fmax > 500) fmax = 500;
   obs.resize(prec.size());           // clear and size the observations vector
   obs.setall(1);                     // set all of these observations to 1
 
   it = prec.begin();
   while (it != prec.end()) {         // copy precursor data to features
+    if (i >= 100) break;
     features[i++] = *it; 
     it++; 
   } // end while (it)
