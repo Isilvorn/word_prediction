@@ -192,6 +192,12 @@ void wdata::disp_weights(void) {
 } // end disp_weights()
 
 /*
+** The num_obs() function simply returns the number of observations used in
+** the calculation.  This also happens to be fmax.
+*/
+int wdata::num_obs(void) { return fmax; }
+
+/*
 ** The pad_features() function pads the features vector so that there are
 ** enough dummy features to satisfy the matrix algebra routines.
 */

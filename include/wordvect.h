@@ -52,6 +52,7 @@ public:
   string str(void) const;                 // returns the string entry
   void   incr(void);                      // increments the usage counter
   int    count(void) const;               // returns the usage count of the word
+  int    num_obs(void) const;             // returns the number of observations expected
   void   setord(int);                     // sets the ordinal of the word
   int    getord(void) const;              // gets the ordinal of the word
   void   addprec(Svect&) const;           // adds a precursor vector to the word data

@@ -7,3 +7,4 @@ Show last observations set
 Calculate next N regressions
 Test solution for last regression
 Set work queue size
+Set early termination (0 = read entire file)

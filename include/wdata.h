@@ -35,6 +35,7 @@ public:
   void disp_features(void);     // displays all of the data in the features vector
   void disp_obs(void);          // displays all of the data in the observations vector
   void disp_weights(void);      // displays the weights
+  int  num_obs(void);           // displays the number of observations used (fmax)
   double find_prob(Svect&);     // given a vector of precursors, finding probability
                                 // that the word in this instance is the next one
 

@@ -9,16 +9,18 @@
 using namespace std;
 using namespace std::chrono;
 
-void   processfile(string, Dict&);
+void   processfile(string, Dict&, int=1000);
+double predictCalcTime(int,double&,bool=false);
 string cleanword(string);
 int    parse(string, string[]);
 
 int main(int argv, char **argc) {
   Menu           mainMenu;
   Dict           words_used;
-  int            idx=0,N=1;
+  int            idx=0, N=1, maxwords = 1000;
   string         fname = "war_and_peace.txt", lastword="", nextword="";
-  double         thr;
+  double         thr,f=1.0,ptime;
+  bool           fileread=false;
 
   list<WVit>::iterator it;
   steady_clock::time_point t1, t2;
@@ -39,7 +41,7 @@ int main(int argv, char **argc) {
         cout << "Processing data source...";
         fflush(stdout);
         t1 = steady_clock::now();
-        processfile(fname, words_used);
+        processfile(fname, words_used, maxwords);
         t2 = steady_clock::now();
         cout << "Done." << endl;
         words_used.thresh(0);
@@ -50,6 +52,7 @@ int main(int argv, char **argc) {
         words_used.write();
         cout << "Done." << endl << endl;
         nextword = words_used.getnew();
+        fileread = true;
        break;
       case 2: // loading dictionary from disk
         cout << "Loading dictionary index from disk...";
@@ -71,25 +74,35 @@ int main(int argv, char **argc) {
         cout << endl;
         break;
       case 6:
-        words_used.thresh(0);
-        for (int i = 0; i < N; i++) {
-          cout << "Computing model for \"" << nextword << "\" (this might take a while)..." << endl;
-          fflush(stdout);
-          t1 = steady_clock::now();
-          words_used[nextword].solve(0.5, true);
-          thr = words_used[nextword].find_optimal();
-          t2 = steady_clock::now();
-          cout << endl << "Done." << endl << endl;
-          time_span = duration_cast<duration<double>>(t2 - t1);
-          cout << endl << "Elapsed time: " << time_span.count() << " seconds." << endl;
-          cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
-               << endl << endl;
-          cout << "Writing regression model for \"" << nextword << "\" to disk...";
-          fflush(stdout);
-          words_used[nextword].write();
-          lastword = nextword;
-          nextword = words_used.getnew();
-        } // end for (i)
+        if (fileread) {
+          words_used.thresh(0);
+          for (int i = 0; i < N; i++) {
+            ptime = predictCalcTime(words_used[nextword].num_obs(),f);
+            cout << "Computing model for \"" << nextword << "\" (predicted time: "
+                 << setprecision(1) << fixed << ptime << " seconds)..." << endl;
+            fflush(stdout);
+            t1 = steady_clock::now();
+            words_used[nextword].solve(0.5, true);
+            thr = words_used[nextword].find_optimal();
+            t2 = steady_clock::now();
+            cout << endl << "Done." << endl << endl;
+            time_span = duration_cast<duration<double>>(t2 - t1);
+            cout << endl << "Elapsed time  : " << time_span.count() << " seconds.";
+            cout << endl << "Predicted time: " << ptime << " seconds." << endl;
+            if (f == 1.0) f = time_span.count()/ptime;
+            else          f = (time_span.count()/ptime + f)/2.0;
+            cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
+                 << endl << endl;
+            cout << "Writing regression model for \"" << nextword << "\" to disk...";
+            fflush(stdout);
+            words_used[nextword].write();
+            lastword = nextword;
+            nextword = words_used.getnew();
+          } // end for (i)
+        } // end if (fileread)
+        else {
+          cout << "You must load the data source first!" << endl;
+        } // end else (fileread)
         cout << "Done." << endl << endl;
         break;
       case 7:
@@ -103,11 +116,18 @@ int main(int argv, char **argc) {
         cout << "Please enter a new size > ";
         cin  >> N;
         break;
+      case 9:
+        cout << "Current early termination for reading input file (# of words): " 
+             << maxwords << endl;
+        cout << "Please enter new value > ";
+        cin  >> maxwords;
+        fileread = false;
     }
 
     mainMenu.draw(0,50);
     mainMenu.addenda("Data Source: " + fname,false);
     mainMenu.addenda("Work queue : ",N,2,false);    
+    mainMenu.addenda("Terminate  : ",maxwords,4,false);    
     mainMenu.addenda("Last word  : " + lastword,false);
     mainMenu.addenda("Next word  : " + nextword,true);
 
@@ -119,8 +139,8 @@ int main(int argv, char **argc) {
 /*
 ** The processfile() function reads in a file intended to be used for training.
 */
-void processfile(string fname, Dict &d) {
-  ifstream infile;
+void processfile(string fname, Dict &d, int maxwords) {
+  ifstream   infile;
   string     wordstring, dropword, group[NVEC+1];
   int        n, m;
   WVit       wit;
@@ -167,7 +187,7 @@ void processfile(string fname, Dict &d) {
           n++;
         } // end if (words)
       } // end for (j)
-      if (n > 1000) break; // early termination for testing
+      if ((maxwords != 0) && (n > maxwords)) break; // early termination 
     } // end while (infile)
   } // end if (infile)
   else {
@@ -175,6 +195,18 @@ void processfile(string fname, Dict &d) {
   }
 
   return;
+}
+
+/*
+**
+*/
+double predictCalcTime(int nobs, double &f, bool init) {
+  double ptime;
+  if (nobs <= 130) ptime = 0.4353*exp(0.0262*nobs);
+  else             ptime = 0.2636*nobs - 21.609;
+
+  if (init) return ptime;
+  else      return (f*ptime);
 }
 
 /*

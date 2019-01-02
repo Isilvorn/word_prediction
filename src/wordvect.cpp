@@ -183,6 +183,16 @@ int wordvect::count(void) const {
 } // end count()
 
 /*
+** The num_obs() function predicts the number of observations that are
+** expected to be used (for the purpose of estimating a time to calculate)
+*/
+int wordvect::num_obs(void) const {
+  wdata *w;
+  w = wd;
+  return (w->prec.size()*10<500?(w->prec.size()*10):500);
+}
+
+/*
 ** The setord() function sets the ordinal (unique identifier) of the word.
 ** This cannot be changed after the word is added to the dictionary.
 */
@@ -250,6 +260,7 @@ void wordvect::solve(double d, bool verbose) const {
 
   if (verbose) {
   	cout << "Calculated weights after (" << niter << ") iterations:" << endl;
+    cout << "Observations vector size: " << w->num_obs() << endl;
   	dm.display_weights();
   	dm.pred();
   	dm.apply_threshold(0.5);
