@@ -10,7 +10,7 @@ using namespace std;
 using namespace std::chrono;
 
 void   processfile(string, Dict&, int=1000);
-double predictCalcTime(int,double&,bool=false);
+double predictCalcTime(int,double=1.0,bool=false);
 string cleanword(string);
 int    parse(string, string[]);
 
@@ -90,7 +90,7 @@ int main(int argv, char **argc) {
             cout << endl << "Elapsed time  : " << time_span.count() << " seconds.";
             cout << endl << "Predicted time: " << ptime << " seconds." << endl;
             if (f == 1.0) f = time_span.count()/ptime;
-            else          f = (time_span.count()/ptime + f)/2.0;
+            else          f = (f*time_span.count()/ptime + f)/2.0;
             cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
                  << endl << endl;
             cout << "Writing regression model for \"" << nextword << "\" to disk...";
@@ -198,9 +198,12 @@ void processfile(string fname, Dict &d, int maxwords) {
 }
 
 /*
-**
+** The predictCalcTime() function calculates a prediction of the amount of time required
+** to converge on a calculation given the standard paramters on the reference machine.
+** supplying a factor (f) to the function other than 1.0 will scale the calculation by
+** a constant factor.  This is done to account for variations in hardware.
 */
-double predictCalcTime(int nobs, double &f, bool init) {
+double predictCalcTime(int nobs, double f, bool init) {
   double ptime;
   if (nobs <= 130) ptime = 0.4353*exp(0.0262*nobs);
   else             ptime = 0.2636*nobs - 21.609;
