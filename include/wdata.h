@@ -28,6 +28,7 @@ public:
   int    size(void);            // access the size of the precursor data
   void incr(void);              // increment the usage count
   int  count(void) const;       // return the usage count
+  bool is_populated(void);      // returns whether the weights vector is populated
   void init_weights(double);    // initializes the weights used for the logistic regression calculation
   void init_logr(double);       // initializes the features array used in the logistic regression
   void add_negs(list<Svect>&);  // adds negative observation data to the features and observations
@@ -45,6 +46,8 @@ public:
   int         sz;               // nominal size of the sparse vectors
   int         fmax;             // max size of the features vector (set to 10x prec size)
   int         fsize;            // current size of the features vector
+  bool        populated;        // flag indicating whether the weights have been populated
+  double      thr;              // threshold value calculated from ROC curve
   Svect       weights;          // the weights calculated via logistic regession for predicting
                                 // this word based on its list of precursor words
   Svect       features[500];    // the features vector collection used in the logistic regression

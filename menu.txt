@@ -8,3 +8,4 @@ Calculate next N regressions
 Test solution for last regression
 Set work queue size
 Set early termination (0 = read entire file)
+Test solution for arbitrary word

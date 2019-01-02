@@ -17,8 +17,8 @@ int    parse(string, string[]);
 int main(int argv, char **argc) {
   Menu           mainMenu;
   Dict           words_used;
-  int            idx=0, N=1, maxwords = 1000;
-  string         fname = "war_and_peace.txt", lastword="", nextword="";
+  int            idx=0, N=1, maxwords = 1000, nobs;
+  string         fname = "war_and_peace.txt", lastword="", nextword="", inword;
   double         thr,f=1.0,ptime;
   bool           fileread=false;
 
@@ -61,7 +61,12 @@ int main(int argv, char **argc) {
         cout << "Done." << endl;
         break;
       case 3:
-        cout << "Dictionary:" << endl << endl << words_used << endl << endl;
+        if (fileread) {
+          cout << "Dictionary:" << endl << endl << words_used << endl << endl;
+        } // end if (fileread)
+        else {
+          cerr << "You must load the data source first!" << endl;
+        } // end else (fileread)
         break;
       case 4:
         cout << endl;
@@ -77,27 +82,41 @@ int main(int argv, char **argc) {
         if (fileread) {
           words_used.thresh(0);
           for (int i = 0; i < N; i++) {
-            ptime = predictCalcTime(words_used[nextword].num_obs(),f);
-            cout << "Computing model for \"" << nextword << "\" (predicted time: "
-                 << setprecision(1) << fixed << ptime << " seconds)..." << endl;
-            fflush(stdout);
-            t1 = steady_clock::now();
-            words_used[nextword].solve(0.5, true);
-            thr = words_used[nextword].find_optimal();
-            t2 = steady_clock::now();
-            cout << endl << "Done." << endl << endl;
-            time_span = duration_cast<duration<double>>(t2 - t1);
-            cout << endl << "Elapsed time  : " << time_span.count() << " seconds.";
-            cout << endl << "Predicted time: " << ptime << " seconds." << endl;
-            if (f == 1.0) f = time_span.count()/ptime;
-            else          f = (f*time_span.count()/ptime + f)/2.0;
-            cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
-                 << endl << endl;
-            cout << "Writing regression model for \"" << nextword << "\" to disk...";
-            fflush(stdout);
-            words_used[nextword].write();
-            lastword = nextword;
-            nextword = words_used.getnew();
+            nobs = words_used[nextword].num_obs();
+            if (nobs > 300) {
+              ptime = predictCalcTime(nobs,f);
+              cout << "Computing model for \"" << nextword << "\" (predicted time: "
+                   << setprecision(1) << fixed << ptime << " seconds)..." << endl;
+              fflush(stdout);
+              t1 = steady_clock::now();
+              words_used[nextword].solve(0.5, true);
+              thr = words_used[nextword].find_optimal();
+              t2 = steady_clock::now();
+              cout << endl << "Done." << endl << endl;
+              time_span = duration_cast<duration<double>>(t2 - t1);
+              cout << endl << "Elapsed time  : " << time_span.count() << " seconds.";
+              cout << endl << "Predicted time: " << ptime << " seconds." << endl;
+              if (f == 1.0) f = time_span.count()/ptime;
+              else          f = (f*time_span.count()/ptime + f)/2.0;
+              cout <<"Optimal threshold for last regression: " << setprecision(4) << fixed << thr 
+                   << endl << endl;
+              cout << "Writing regression model for \"" << nextword << "\" to disk...";
+              fflush(stdout);
+              words_used[nextword].write();
+              lastword = nextword;
+              nextword = words_used.getnew();
+              cout << "Done." << endl;
+            } // end if (nobs)
+            else {
+              cout << "Increasing data set size to obtain more examples..." << endl;
+              maxwords += 500;
+              processfile(fname, words_used, maxwords);
+              words_used.thresh(0);
+              words_used.write();
+              nextword = words_used.getnew();
+              fileread = true;
+              cout << "Done." << endl;
+            }
           } // end for (i)
         } // end if (fileread)
         else {
@@ -108,7 +127,7 @@ int main(int argv, char **argc) {
       case 7:
         cout << "Testing solution for \"" << lastword << "\"..." << endl;
         fflush(stdout);
-        words_used[lastword].testsoln(thr);
+        words_used[lastword].testsoln();
         cout << endl << "Done." << endl << endl;
         break;
       case 8:
@@ -122,6 +141,15 @@ int main(int argv, char **argc) {
         cout << "Please enter new value > ";
         cin  >> maxwords;
         fileread = false;
+        break;
+      case 10:
+        cout << "Which word? > ";
+        cin  >> inword;
+        cout << "Testing solution for \"" << inword << "\"..." << endl;
+        fflush(stdout);
+        words_used[inword].testsoln();
+        cout << endl << "Done." << endl << endl;
+        break;
     }
 
     mainMenu.draw(0,50);

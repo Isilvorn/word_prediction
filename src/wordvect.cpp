@@ -247,16 +247,20 @@ void wordvect::solve(double d, bool verbose) const {
   lit = train->begin();
   while (lit != train->end()) {
   	if (ord != (**lit).ord) {
-	  w->add_negs((**lit).word_data()->prec);
-	} // end if (ord)
+      w->add_negs((**lit).word_data()->prec);
+    } // end if (ord)
   	lit++;
   } // end while (lit)
 
   dm.set_weights(w->weights);
+  //cout << "Setting weights: "; w->disp_weights(); cout <<endl;
   dm.set_features(w->features);
+  //cout << "Setting features: "; w->disp_features(); cout <<endl;
   dm.set_observations(w->obs);
+  //cout << "Setting observations: "; w->disp_obs(); cout <<endl;
   niter = dm.getsoln(0.01, 1000);
   dm.get_weights(w->weights);
+  w->populated = true;
 
   if (verbose) {
   	cout << "Calculated weights after (" << niter << ") iterations:" << endl;
@@ -274,37 +278,47 @@ void wordvect::solve(double d, bool verbose) const {
 ** The testsoln() function benchmarks the solution against the test data.  This
 ** function can only be run after the "solve()" function is run.
 */
-void wordvect::testsoln(double thr) const {
+void wordvect::testsoln(void) const {
   Datamodule           dm;
   list<WVit>::iterator lit;
   wdata               *w;
   int                  niter;
 
   w = wd; 
-  w->init_logr(0); 
+  // attempt to load a data file first if a data file exists
+  if (!w->is_populated()) read();
+  if (w->is_populated()) { // nothing to do if weights aren't populated
+    w->init_logr(0); 
 
-  // For each word in the testing set, adding the precursors that go with that
-  // particular word to the features if the ordinal does  not match the word in 
-  // this instance.  These are the negative observations, while the init_logr() 
-  // function initialized the positive observation data.
-  lit = test->begin();
-  while (lit != test->end()) {
-  	if (ord != (**lit).ord) {
-	  w->add_negs((**lit).word_data()->prec);
-	} // end if (ord)
-  	lit++;
-  } // end while (lit)
+    // For each word in the testing set, adding the precursors that go with that
+    // particular word to the features if the ordinal does  not match the word in 
+    // this instance.  These are the negative observations, while the init_logr() 
+    // function initialized the positive observation data.
+    lit = test->begin();
+    while (lit != test->end()) {
+      if (ord != (**lit).ord) {
+        w->add_negs((**lit).word_data()->prec);
+      } // end if (ord)
+      lit++;
+    } // end while (lit)
 
-  dm.set_weights(w->weights);
-  dm.set_features(w->features);
-  dm.set_observations(w->obs);
+    dm.set_weights(w->weights);
+    //cout << "Setting weights: "; w->disp_weights(); cout <<endl;
+    dm.set_features(w->features);
+    //cout << "Setting features: ";  w->disp_features(); cout <<endl;
+    dm.set_observations(w->obs);
+    //cout << "Setting observations: "; w->disp_obs(); cout <<endl;
 
-  cout << "Testing results:" << endl;
-  dm.display_weights();
-  dm.pred();
-  dm.apply_threshold(thr);
-  dm.display_results();
-  dm.display_confusion();
+    cout << "Testing results:" << endl;
+    dm.display_weights();
+    dm.pred();
+    dm.apply_threshold(w->thr);
+    dm.display_results();
+    dm.display_confusion();
+  } // end if (w->is_populated())
+  else {
+    cerr << "The weights have not been calculated yet." << endl;
+  }
 
 } // end test()
 
@@ -355,6 +369,7 @@ double wordvect::find_optimal(void) const {
 		{ optDIST = dist; optTPR = tpr; optFPR = fpr; optTHR = thr; }
   } // end for (i)
 
+  w->thr = optTHR;
   return optTHR;
 }
 
@@ -372,13 +387,14 @@ double wordvect::find_prob(Svect &p) {
 ** The write() function creates an eponymous file in the "dict" subdirectory
 ** to store the weights that were calculated using logistic regression.
 */
-void wordvect::write(void) const {
+bool wordvect::write(bool verbose) const {
   ofstream ofile;
   wdata *w = wd;
   outdbl dout;
   outint iout;
   string fname;
   int    expl, sz, position, index, composite;
+  double thr;
 
   if (IS_PLATFORM(LINUX)) 
     fname = "dict/" + entry + ".dat";
@@ -389,10 +405,13 @@ void wordvect::write(void) const {
   if (ofile.is_open()) {
   	expl = w->weights.count_explicit();
   	sz   = w->weights.size();
+    thr  = w->thr;
   	iout.i = expl;
   	ofile.write(&iout.c[0],4);
   	iout.i = sz;
   	ofile.write(&iout.c[0],4);
+    dout.d = thr;
+    ofile.write(&dout.c[0],8);
   	for (int i=0; i<sz; i++) {
   		if (w->weights.is_explicit(i)) {
   			iout.i = i;
@@ -402,9 +421,11 @@ void wordvect::write(void) const {
   		} // end if (weights) 
   	} // end for (i)
   	ofile.close();
+    return true;
   } // end if (ofile)
   else {
-  	cerr << "Could not open file \"dict\\" << entry << "\" for output." << endl;
+  	if (verbose) cerr << "Could not open file \"dict\\" << entry << "\" for output." << endl;
+    return false;
   } // end else (ofile)
 } // end write()
 
@@ -413,13 +434,14 @@ void wordvect::write(void) const {
 ** subdirectory that were calculated using logistic regression and stored in 
 ** the file at an earlier time.
 */
-void wordvect::read(void) const {
+bool wordvect::read(bool verbose) const {
   ifstream ifile;
   wdata *w = wd;
   outdbl dout;
   outint iout;
   string fname;
   int    expl, sz, position, index, composite;
+  double thr;
 
   if (IS_PLATFORM(LINUX)) 
     fname = "dict/" + entry + ".dat";
@@ -432,9 +454,13 @@ void wordvect::read(void) const {
   	expl = iout.i;
   	ifile.read(&iout.c[0],4);
   	sz = iout.i;
+    ifile.read(&dout.c[0],8);
+    thr = dout.d;
   	cout << "size = " << sz << endl;
   	w->weights.resize(sz);
   	cout << "explicit = " << expl << endl;
+    cout << "optimal threshold = " << thr << endl;
+    w->thr = thr;
   	for (int i=0; i<expl; i++) {
   		iout.i = 0;
   		dout.d = 0.0;
@@ -443,8 +469,11 @@ void wordvect::read(void) const {
 	  	w->weights[iout.i] = dout.d;
   	} // end for (i)
   	ifile.close();
+    w->populated = true;
+    return true;
   } // end if (ofile)
   else {
-  	cerr << "Could not open file \"dict\\" << entry << "\" for input." << endl;
+  	if (verbose) cerr << "Could not open file \"" << fname << "\" for input." << endl;
+    return false;
   } // end else (ofile)
 } // end write()

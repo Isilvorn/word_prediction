@@ -24,10 +24,12 @@ wdata::~wdata(void) { }
 ** currently residing in the struct is lost.
 */
 void wdata::clear(int s) { 
-  ct = 0;
-  sz = s;
+  ct  = 0;
+  sz  = s;
+  thr = 0.5;
   prec.erase(prec.begin(), prec.end());
   weights.resize(s);
+  populated = false;
 } // end clear()
 
 /*
@@ -38,6 +40,7 @@ void wdata::copy(const wdata &wd) {
   list<Svect>::const_iterator it;
   ct = wd.ct;
   sz = wd.sz;
+  populated = wd.populated;
   it = wd.prec.cbegin(); 
   while (it != wd.prec.cend()) { 
     prec.push_front(*it); 
@@ -91,6 +94,13 @@ void wdata::incr(void) { ct++; }
 int wdata::count(void) const { return ct; }
 
 /*
+** The is_populated() function returns whether the weights vector has valid
+** entries and has been populated be the logistic regression or read in from
+** a data file.
+*/
+bool wdata::is_populated(void) { return populated; }
+
+/*
 ** The init_weights() function initializes the weights used in the logistic
 ** regression.  It first adds in all of the data from each precursor so that
 ** there is an explicit element in the weights vector for every explicit
@@ -111,6 +121,7 @@ void wdata::init_weights(double w) {
     it++; 
   } // end while (lit);
   weights = w; // overwrite all of the explicit data with the initial weight supplied
+  populated = false;
 } // end init_weights()
 
 
@@ -125,6 +136,7 @@ void wdata::init_logr(double w) {
   if (w != 0) init_weights(w);
   fmax = 10*prec.size();             // setting max size of features vector
   if (fmax > 500) fmax = 500;
+  //cout << "fmax = " << fmax << endl;
   obs.resize(prec.size());           // clear and size the observations vector
   obs.setall(1);                     // set all of these observations to 1
 

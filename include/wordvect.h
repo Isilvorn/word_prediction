@@ -60,11 +60,11 @@ public:
   void   set_test(list<multiset<wordvect>::iterator>*);  // sets the pointer to the testing set
   void   solve(double, bool=false) const; // master function that solves for the weights
   double find_optimal(void) const;        // find the optimal threshold
-  void   testsoln(double) const;          // benchmarks the solution against the test data
+  void   testsoln(void) const;            // benchmarks the solution against the test data
   double find_prob(Svect&);               // given a vector of precursors, finding probability
                                           // that the word in this instance is the next one
-  void   write(void) const;               // writes the data to an eponymous file
-  void   read(void) const;                // reads the data from an eponymous file
+  bool   write(bool=true) const;          // writes the data to an eponymous file
+  bool   read(bool=true) const;           // reads the data from an eponymous file
 
   // Once a wordvect instance is stored in the dictionary, the only
   // way to change the substructure data is to explicitly set the
