@@ -375,12 +375,18 @@ double wordvect::find_optimal(void) const {
 
 /*
 ** The find_prob() function is a pass-through function that finds the 
-** probability that the word in this instance is the next one.  The 
-** return value is the probability.
+** probability that the word in this instance is the next one.  The return 
+** value is the probability.  If the weights vector is not populated, it checks
+** to see if there is a data file for this word. If this fails as well, it
+** returns a zero.
 */
-double wordvect::find_prob(Svect &p) {
+double wordvect::find_prob(Svect &p) const {
   wdata *w = wd;
-  return w->find_prob(p);
+  if (w->is_populated()) return w->find_prob(p);
+  else {
+    if (read(false))     return w->find_prob(p);
+    else                 return 0.0;
+  } 
 }
 
 /*
@@ -456,10 +462,10 @@ bool wordvect::read(bool verbose) const {
   	sz = iout.i;
     ifile.read(&dout.c[0],8);
     thr = dout.d;
-  	cout << "size = " << sz << endl;
+  	//cout << "size = " << sz << endl;
   	w->weights.resize(sz);
-  	cout << "explicit = " << expl << endl;
-    cout << "optimal threshold = " << thr << endl;
+  	//cout << "explicit = " << expl << endl;
+    //cout << "optimal threshold = " << thr << endl;
     w->thr = thr;
   	for (int i=0; i<expl; i++) {
   		iout.i = 0;

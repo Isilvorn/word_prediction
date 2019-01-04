@@ -69,6 +69,9 @@ public:
   void      loadnix(string);              // loads a specified list of words into the nix multiset
   string    getnew(void);                 // gets the next word to regress, by priority
   void      prioritize(void);             // constructs the priority list based on word frequency
+  int*      get_guesses(Svect&);          // calculates which words are likely to follow a specific word stream
+  int       num_guesses(void);            // return the number of valid guesses
+  void      show_guesses(void);           // show the current list of guesses via stdout
   const wordvect& get(wordvect&);         // finds an entry in the dictionary and returns a reference to that item
   const wordvect& get(string);
 
@@ -84,13 +87,15 @@ private:
   list<WVit>                    test;     // the words in the testing set (random subset of words)
   multiset<wordvect,classcompv> words;    // the set of words that make up the dictionary
   multiset<string,classcompf>   nix;      // the set of words explicitly not prioritized for regression
-  list<WVit> prilist;   // list of iterators sorted by frequency priority
-  wordvect empty;       // an empty wordvect to return in cases where the requested entry does not exist
-  int      nord;        // the next ordinal number
-  int      thr;         // count threshold for group operations (like display)
-  double   ptrain;      // the probability of being copied into the train wordvect
-  double   ptest;       // the probability of being copied into the test wordvect
-  bool     prioritized; // flag indicating whether the current list has a valid priorization
+  list<WVit> prilist;    // list of iterators sorted by frequency priority
+  wordvect empty;        // an empty wordvect to return in cases where the requested entry does not exist
+  int      nord;         // the next ordinal number
+  int      thr;          // count threshold for group operations (like display)
+  double   ptrain;       // the probability of being copied into the train wordvect
+  double   ptest;        // the probability of being copied into the test wordvect
+  bool     prioritized;  // flag indicating whether the current list has a valid priorization
+  int      guesses[256]; // contains the results of the last guess calculation
+  int      nguesses;     // number of valid guesses in the guesses array
 };
 
 #endif // DICT_H

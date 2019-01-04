@@ -317,6 +317,76 @@ void Dict::prioritize() {
 } // end prioritize
 
 /*
+** The get_guesses() function returns which words are likely to follow a 
+** specific word stream, which is given by the "svin" argument.  The
+** argument follows the same pattern used in the probability calculation
+** for the wordvect: svin[ordinal] = score.  The ordinal is the integer
+** ordinal of the word, and the score is the proximity to the next word.
+** if the word stream is "the quick brown fox", "the" would have a score
+** of 1, "quick" would have a score of 2, "brown" would have a score of
+** 3, and "fox" would have a score of 4.  Higher scores indicate closer
+** proximity to the next word.
+*/
+struct prob_pair { int i; double d; };
+bool   pcomp(prob_pair &first, prob_pair &second) { return (first.d > second.d); }
+
+int*   Dict::get_guesses(Svect &svin) {
+  list<prob_pair>           results;
+  list<prob_pair>::iterator lit;
+  WVit                      wit;
+  prob_pair                 pp;
+  int                       i;
+  double                    thresh = 0.5;
+
+  for (i=0; i<256; i++) guesses[i]=-1;
+
+  // Figuring out what the probability of being the next word is for each
+  // word in the dictionary.  If the weights are not populated, and there
+  // is no data file saved, the probability will be zero.
+  //cout << "Before sorting:" << endl;
+  wit = words.begin();
+  while (wit != words.end()) {
+    pp.d = wit->find_prob(svin);
+    pp.i = wit->getord();
+    if (isnormal(pp.d)) if (pp.d > thresh) results.push_front(pp);
+    //cout << "i: " << pp.i << ", d: " << pp.d << "  " << svin << endl;
+    wit++;
+  }
+
+  //cout << endl << endl << "After sorting:" << endl;
+  results.sort(pcomp);
+  i = 0;
+  lit = results.begin();
+  while ((lit != results.end()) && (i < 256)) {
+    guesses[i] = lit->i;
+    //cout << "i: " << lit->i << ", d: " << lit->d << endl;
+    i++;
+    lit++;
+  }
+  nguesses = i;
+  return guesses;
+}
+
+/*
+** The num_guesses() function returns the number of valid guesses obtained 
+** after running the get_guesses() function.
+*/
+int Dict::num_guesses(void) { return nguesses; }
+
+/*
+** The show_guesses() function prints the latest set of valid guesses for the
+** next word out to stdout.
+*/
+void Dict::show_guesses(void) {
+  cout << "{ ";
+  for (int i = 0; i < nguesses; i++) {
+    cout << (*this)[guesses[i]] << " ";
+  } // end for (i)
+  cout << "}" << endl;
+
+} // end show_guesses()
+
+/*
 ** The getnew() function gets the string component of the next word in the 
 ** priority list that has not been regressed.  The word that is returned is 
 ** popped off of the priority list.
@@ -328,6 +398,7 @@ string Dict::getnew() {
   prilist.erase(prilist.begin());
   return retstring;
 }
+
 /*
 ** The get() functions return a wordvect from the dictionary that matches a 
 ** search template. The first version uses another wordvect as a search template, 

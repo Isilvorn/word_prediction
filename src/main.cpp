@@ -17,10 +17,19 @@ int    parse(string, string[]);
 int main(int argv, char **argc) {
   Menu           mainMenu;
   Dict           words_used;
-  int            idx=0, N=1, maxwords = 1000, nobs;
+  int            m, idx=0, N=1, maxwords = 1000, nobs;
   string         fname = "war_and_peace.txt", lastword="", nextword="", inword;
   double         thr,f=1.0,ptime;
   bool           fileread=false;
+  Svect          testvector(MAXD);
+  string         words[10], teststring = "you are no longer";
+  int            *ret;
+
+  // creating default test vector
+  //testvector[24]  = 1; // you
+  //testvector[129] = 2; // are
+  //testvector[18]  = 3; // no
+  //testvector[160] = 4; // longer
 
   list<WVit>::iterator it;
   steady_clock::time_point t1, t2;
@@ -150,6 +159,26 @@ int main(int argv, char **argc) {
         words_used[inword].testsoln();
         cout << endl << "Done." << endl << endl;
         break;
+      case 11:
+        cout << "Test String: " << teststring << endl;
+        teststring = cleanword(teststring);
+        testvector.resize(MAXD);
+        m = parse(teststring, words);
+        for (int i=0; i<m; i++) {
+          testvector[words_used[words[i]].getord()] = i + 1;
+        }
+        cout << "Test Vector: " << testvector << endl;
+        ret = words_used.get_guesses(testvector);
+        for (int i=0; i<words_used.num_guesses(); i++) {
+          cout << "ret[" << setw(3) << i << "] = " << setw(4) << ret[i] 
+               << "word: " << words_used[ret[i]] << endl;
+        }
+        break;
+      case 12:
+        cout << "Enter new test string: ";
+        cin.ignore(numeric_limits<streamsize>::max(),'\n');
+        getline(cin, teststring);
+        break;
     }
 
     mainMenu.draw(0,50);
@@ -157,7 +186,8 @@ int main(int argv, char **argc) {
     mainMenu.addenda("Work queue : ",N,2,false);    
     mainMenu.addenda("Terminate  : ",maxwords,4,false);    
     mainMenu.addenda("Last word  : " + lastword,false);
-    mainMenu.addenda("Next word  : " + nextword,true);
+    mainMenu.addenda("Next word  : " + nextword,false);
+    mainMenu.addenda("Test string: " + teststring,true);
 
   } while ((idx=mainMenu.prompt()) != 0);
 
@@ -205,12 +235,16 @@ void processfile(string fname, Dict &d, int maxwords) {
               //cout << group[i] << " ";
               group[i] = group[i+1];
             }
+            //testing code
             //cout << "<" << words[j] << ">" << endl;
             //cout << prec_example << endl;
+            //cout << words[j] << ": " << prec_example << d[words[j]].find_prob(prec_example) << endl;
+
             wit->addprec(prec_example);
             prec_example -= 1;                            // decrement the value of all precursor words by one
             prec_example.remove(d[dropword].getord());    // remove the oldest word from the precursors
             prec_example[d[words[j]].getord()] = NVEC;    // add the current word to the precursors
+
           } // end else (n)
           n++;
         } // end if (words)

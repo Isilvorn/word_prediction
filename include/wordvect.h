@@ -61,7 +61,7 @@ public:
   void   solve(double, bool=false) const; // master function that solves for the weights
   double find_optimal(void) const;        // find the optimal threshold
   void   testsoln(void) const;            // benchmarks the solution against the test data
-  double find_prob(Svect&);               // given a vector of precursors, finding probability
+  double find_prob(Svect&) const;         // given a vector of precursors, finding probability
                                           // that the word in this instance is the next one
   bool   write(bool=true) const;          // writes the data to an eponymous file
   bool   read(bool=true) const;           // reads the data from an eponymous file
