@@ -236,10 +236,12 @@ void wordvect::solve(double d, bool verbose) const {
   Datamodule           dm;
   list<WVit>::iterator lit;
   wdata               *w;
+  Svect                features[500];
+  Svect                observations;
   int                  niter;
 
   w = wd; 
-  w->init_logr(d); 
+  w->init_logr(d, features, observations); 
   // For each word in the training set, adding the precursors that go with that
   // particular word to the features if the ordinal does not match the word
   // in this instance.  These are the negative observations, while the 
@@ -247,17 +249,14 @@ void wordvect::solve(double d, bool verbose) const {
   lit = train->begin();
   while (lit != train->end()) {
   	if (ord != (**lit).ord) {
-      w->add_negs((**lit).word_data()->prec);
+      w->add_negs((**lit).word_data()->prec, features, observations);
     } // end if (ord)
   	lit++;
   } // end while (lit)
 
   dm.set_weights(w->weights);
-  //cout << "Setting weights: "; w->disp_weights(); cout <<endl;
-  dm.set_features(w->features);
-  //cout << "Setting features: "; w->disp_features(); cout <<endl;
-  dm.set_observations(w->obs);
-  //cout << "Setting observations: "; w->disp_obs(); cout <<endl;
+  dm.set_features(features);
+  dm.set_observations(observations);
   niter = dm.getsoln(0.01, 1000);
   dm.get_weights(w->weights);
   w->populated = true;
@@ -275,6 +274,14 @@ void wordvect::solve(double d, bool verbose) const {
 } // end solve()
 
 /*
+** The isvalid() function checks to ensure that each of the weights calculated
+** is actually a valid number.  If, for example, a "nan" or "inf" is returned,
+** the return value of this function would be false.
+*/
+bool wordvect::isvalid(void) const {
+  return wd->weights.isvalid();
+}
+/*
 ** The testsoln() function benchmarks the solution against the test data.  This
 ** function can only be run after the "solve()" function is run.
 */
@@ -282,13 +289,15 @@ void wordvect::testsoln(void) const {
   Datamodule           dm;
   list<WVit>::iterator lit;
   wdata               *w;
+  Svect                features[500];
+  Svect                observations;
   int                  niter;
 
   w = wd; 
   // attempt to load a data file first if a data file exists
   if (!w->is_populated()) read();
   if (w->is_populated()) { // nothing to do if weights aren't populated
-    w->init_logr(0); 
+    w->init_logr(0, features, observations); 
 
     // For each word in the testing set, adding the precursors that go with that
     // particular word to the features if the ordinal does  not match the word in 
@@ -297,17 +306,14 @@ void wordvect::testsoln(void) const {
     lit = test->begin();
     while (lit != test->end()) {
       if (ord != (**lit).ord) {
-        w->add_negs((**lit).word_data()->prec);
+        w->add_negs((**lit).word_data()->prec, features, observations);
       } // end if (ord)
       lit++;
     } // end while (lit)
 
     dm.set_weights(w->weights);
-    //cout << "Setting weights: "; w->disp_weights(); cout <<endl;
-    dm.set_features(w->features);
-    //cout << "Setting features: ";  w->disp_features(); cout <<endl;
-    dm.set_observations(w->obs);
-    //cout << "Setting observations: "; w->disp_obs(); cout <<endl;
+    dm.set_features(features);
+    dm.set_observations(observations);
 
     cout << "Testing results:" << endl;
     dm.display_weights();
@@ -331,12 +337,14 @@ double wordvect::find_optimal(void) const {
   Datamodule           dm;
   list<WVit>::iterator lit;
   wdata               *w;
+  Svect                features[500];
+  Svect                observations;
   int                  niter;
   double               thr, tpr, fpr, dist, optDIST, optTPR, optFPR, optTHR, 
 					             res[4];
 
   w = wd; 
-  w->init_logr(0); 
+  w->init_logr(0, features, observations); 
 
   // For each word in the testing set, adding the precursors that go with that
   // particular word to the features if the ordinal does  not match the word in 
@@ -346,14 +354,14 @@ double wordvect::find_optimal(void) const {
   lit = test->begin();
   while (lit != test->end()) {
   	if (ord != (**lit).ord) {
-	  w->add_negs((**lit).word_data()->prec);
+	  w->add_negs((**lit).word_data()->prec, features, observations);
 	} // end if (ord)
   	lit++;
   } // end while (lit)
 
   dm.set_weights(w->weights);
-  dm.set_features(w->features);
-  dm.set_observations(w->obs);
+  dm.set_features(features);
+  dm.set_observations(observations);
   dm.pred();
 
   thr = 0.0;

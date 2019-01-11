@@ -26,8 +26,8 @@
 using namespace std;
 
 // cache size for Svect
-#define CSZ 64
-
+#define CSZ   64
+#define EPSIL 1E-08
 /*
 ** Datapoint is a struct that contains the data for Svect.
 */
@@ -89,6 +89,8 @@ public:
   double& operator[](int);           // allows setting an individual element via brackets
 
   bool   is_explicit(int) const;     // returns whether an element is explicitly present
+  int    find(double) const;         // returns the index of the first element matching particular data
+  bool   isvalid(void) const;        // checks each explicit element to determine if it is a valid number
   int    count_explicit(void) const; // returns the number of explicit entries in the list
   void   remove(int);                // removes an explicit element (sets it to zero)
   multiset<Datapoint>::iterator remove(multiset<Datapoint>::iterator&);

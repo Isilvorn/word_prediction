@@ -62,7 +62,7 @@ bool byfreq(WVit first, WVit second) {
 ** The default constructor uses the clear() function to initialize all data in
 ** the dictionary.
 */
-Dict::Dict() { clear(); loadnix("nixlist.txt"); }
+Dict::Dict() { clear(); loadnix("nixlist.txt","standardlist.txt"); }
 /*
 ** Destructor (does nothing - there is no dynamic data other than the multiset
 ** which has its own destructor).
@@ -162,6 +162,15 @@ WVit Dict::find(string sw) {
 }
 
 /*
+** The check() function checks to see if a wordvect iterator is valid.  It
+** returns true if so, and false if not.
+*/
+bool Dict::check(WVit tocheck) {
+  if (tocheck != words.end()) return true;
+  return false;
+} // end check()
+
+/*
 ** The write() function writes the dictionary index to a file in the "dict"
 ** subdirectory.  This file can be later read in to reconstruct the multiset.
 */
@@ -248,29 +257,38 @@ void Dict::read(void) {
 } // end write()
 
 /*
-**
+** The loadnix() function loads words that are specifically excluded from
+** modeling.  Roman numerals (such as those used for preamble pages and in
+** the table of contents) are examples.  It also loads in common short
+** words that do not model well (like "a", "an" and "the"); these words
+** always added to the list of candidates.
 */
-void Dict::loadnix(string fname) {
+void Dict::loadnix(string fname1, string fname2) {
   ifstream ifile;
   string   instring;
 
   nix.erase(nix.begin(),nix.end());
-  ifile.open(fname);
+  ifile.open(fname1);
   if (ifile.is_open()) {
     while (!ifile.eof()) {
       ifile >> instring;
       nix.insert(instring);
     }
     ifile.close();
-
-    //cout << "NIX LIST:" << endl;
-    //multiset<string>::iterator it;
-    //it = nix.begin();
-    //while (it != nix.end()) {
-    //  cout << *it << endl;
-    //  it++;
-    //}
   } // end if (ifile)
+
+  stand.erase(stand.begin(),stand.end());
+  ifile.open(fname2);
+  if (ifile.is_open()) {
+    while (!ifile.eof()) {
+      ifile >> instring;
+      nix.insert(instring);
+      stand.insert(instring);
+    }
+    ifile.close();
+  } // end if (ifile)
+
+
 } // end loadnix()
 
 /*
@@ -331,12 +349,13 @@ struct prob_pair { int i; double d; };
 bool   pcomp(prob_pair &first, prob_pair &second) { return (first.d > second.d); }
 
 int*   Dict::get_guesses(Svect &svin) {
-  list<prob_pair>           results;
-  list<prob_pair>::iterator lit;
-  WVit                      wit;
-  prob_pair                 pp;
-  int                       i;
-  double                    thresh = 0.5;
+  list<prob_pair>            results;
+  list<prob_pair>::iterator  lit;
+  WVit                       wit;
+  multiset<string>::iterator sit;
+  prob_pair                  pp;
+  int                        i, m;
+  double                     thresh = 0.5;
 
   for (i=0; i<256; i++) guesses[i]=-1;
 
@@ -353,9 +372,17 @@ int*   Dict::get_guesses(Svect &svin) {
     wit++;
   }
 
-  //cout << endl << endl << "After sorting:" << endl;
-  results.sort(pcomp);
   i = 0;
+  // adding the standard guesses to the results
+  sit = stand.begin();
+  while ((sit != stand.end()) && (i < 256)) {
+    m = (*this)[*sit].getord();
+    if (m != -1) guesses[i++] = m;
+    sit++;
+  }
+
+  // adding the regressed guesses to the results
+  results.sort(pcomp);
   lit = results.begin();
   while ((lit != results.end()) && (i < 256)) {
     guesses[i] = lit->i;

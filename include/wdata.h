@@ -20,7 +20,6 @@ public:
 
   
   void clear(int=0);            // clear all data in the structure and specify Svect nominal size
-  void clearf(void);            // clears the features vector collection only
   void copy(const wdata&);      // copy the data from one instance of the structure to another
   void add(Svect&);             // add an example to the precursor data
   Svect& front(void);           // access the front element in the precursor data
@@ -30,11 +29,8 @@ public:
   int  count(void) const;       // return the usage count
   bool is_populated(void);      // returns whether the weights vector is populated
   void init_weights(double);    // initializes the weights used for the logistic regression calculation
-  void init_logr(double);       // initializes the features array used in the logistic regression
-  void add_negs(list<Svect>&);  // adds negative observation data to the features and observations
-  void pad_features();          // pads the features vector with empty vectors
-  void disp_features(void);     // displays all of the data in the features vector
-  void disp_obs(void);          // displays all of the data in the observations vector
+  void init_logr(double,Svect*,Svect&);      // initializes the features array used in the logistic regression
+  void add_negs(list<Svect>&,Svect*,Svect&); // adds negative observation data to the features and observations
   void disp_weights(void);      // displays the weights
   int  num_obs(void);           // displays the number of observations used (fmax)
   double find_prob(Svect&);     // given a vector of precursors, finding probability
@@ -50,8 +46,6 @@ public:
   double      thr;              // threshold value calculated from ROC curve
   Svect       weights;          // the weights calculated via logistic regession for predicting
                                 // this word based on its list of precursor words
-  Svect       features[500];    // the features vector collection used in the logistic regression
-  Svect       obs;              // the observations vector used in the logistic regression
 };
 
 #endif // WDATA_H

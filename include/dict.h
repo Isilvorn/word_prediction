@@ -64,9 +64,10 @@ public:
   bool      exist(string);                // returns true if the word is already added
   WVit      find(wordvect&);              // finds an entry in the dictionary and returns an iterator
   WVit      find(string);
+  bool      check(WVit);                  // performs checks to determine if a wordvect iterator is valid
   void      write(void);                  // writes the dictionary index file to the dict directory
   void      read(void);                   // reads the dictionary index file from the dict directory
-  void      loadnix(string);              // loads a specified list of words into the nix multiset
+  void      loadnix(string,string);       // loads a specified list of words into the nix multiset
   string    getnew(void);                 // gets the next word to regress, by priority
   void      prioritize(void);             // constructs the priority list based on word frequency
   int*      get_guesses(Svect&);          // calculates which words are likely to follow a specific word stream
@@ -87,6 +88,7 @@ private:
   list<WVit>                    test;     // the words in the testing set (random subset of words)
   multiset<wordvect,classcompv> words;    // the set of words that make up the dictionary
   multiset<string,classcompf>   nix;      // the set of words explicitly not prioritized for regression
+  multiset<string,classcompf>   stand;    // the set of common words always added to a list of candidates
   list<WVit> prilist;    // list of iterators sorted by frequency priority
   wordvect empty;        // an empty wordvect to return in cases where the requested entry does not exist
   int      nord;         // the next ordinal number

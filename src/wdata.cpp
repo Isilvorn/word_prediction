@@ -15,7 +15,7 @@
 wdata::wdata(void)  { clear(); }
 
 /*
-** Destructor (does nothing).
+** Destructor.
 */
 wdata::~wdata(void) { }
 
@@ -129,7 +129,7 @@ void wdata::init_weights(double w) {
 ** The init_logr() function initializes the data used in the logistic 
 ** regression.
 */
-void wdata::init_logr(double w) {
+void wdata::init_logr(double w, Svect *feat, Svect &obsv) {
   list<Svect>::iterator it;
   int i = 0; 
 
@@ -137,13 +137,13 @@ void wdata::init_logr(double w) {
   fmax = 10*prec.size();             // setting max size of features vector
   if (fmax > 500) fmax = 500;
   //cout << "fmax = " << fmax << endl;
-  obs.resize(prec.size());           // clear and size the observations vector
-  obs.setall(1);                     // set all of these observations to 1
+  obsv.resize(prec.size());           // clear and size the observations vector
+  obsv.setall(1);                     // set all of these observations to 1
 
   it = prec.begin();
   while (it != prec.end()) {         // copy precursor data to features
     if (i >= 100) break;
-    features[i++] = *it; 
+    feat[i++] = *it; 
     it++; 
   } // end while (it)
 
@@ -158,42 +158,20 @@ void wdata::init_logr(double w) {
 ** positive observations should be relatively small in size compared to the 
 ** negative observations in order to yield an accurate regression.
 */
-void wdata::add_negs(list<Svect> &negs) {
+void wdata::add_negs(list<Svect> &negs, Svect *feat, Svect &obsv) {
   list<Svect>::iterator it;
   int i = fsize;
 
   it = negs.begin();
   while (it != negs.end()) {
     if (i >= fmax) { fsize = fmax; return; }
-    features[i++] = *it;
+    feat[i++] = *it;
     it++;
   } // end while (it)
 
-  obs.upsize(i);
+  obsv.upsize(i);
   fsize = i;
 } // end add_negs()
-
-/*
-** The disp_features() vector displays all of the data in the features vector.
-*/
-void wdata::disp_features(void) {
-
-  cout << "Features:" << endl;
-  for (int i=0; i < fsize; i++) {
-    cout << setprecision(0) << fixed << features[i] << setprecision(4) 
-        << fixed << " (" << find_prob(features[i]) << ")" << endl;
-  } // end for (i)
-} // end disp_features()
-
-/*
-** The disp_obs() function displays all of the data in the observations vector.
-*/
-void wdata::disp_obs(void) {
-  cout << "Obervations:" << endl;
-  cout << setprecision(0) << fixed << "[ ";
-  for (int i=0; i < obs.size(); i++) cout << obs[i] << " ";
-  cout << "] (" << obs.size() << ")" << endl;
-} // end disp_obs()
 
 /*
 ** The disp_weights() function displays all of the data in the weights vector.
@@ -208,16 +186,6 @@ void wdata::disp_weights(void) {
 ** the calculation.  This also happens to be fmax.
 */
 int wdata::num_obs(void) { return fmax; }
-
-/*
-** The pad_features() function pads the features vector so that there are
-** enough dummy features to satisfy the matrix algebra routines.
-*/
-void wdata::pad_features(void) {
-  Svect pad(weights.size());
-  for (int i=fsize; i < fmax; i++) { features[i] = pad; } 
-  obs.upsize(fmax);
-}
 
 /*
 ** The find_prob() function finds the probability that the word in this

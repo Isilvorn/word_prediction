@@ -59,6 +59,7 @@ public:
   void   set_train(list<multiset<wordvect>::iterator>*); // sets the pointer to the training set
   void   set_test(list<multiset<wordvect>::iterator>*);  // sets the pointer to the testing set
   void   solve(double, bool=false) const; // master function that solves for the weights
+  bool   isvalid(void) const;             // checks to ensure that all of the weights are valid numbers
   double find_optimal(void) const;        // find the optimal threshold
   void   testsoln(void) const;            // benchmarks the solution against the test data
   double find_prob(Svect&) const;         // given a vector of precursors, finding probability

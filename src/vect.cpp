@@ -104,6 +104,33 @@ bool Svect::is_explicit(int n) const {
 }
 
 /*
+** The find() function finds the first element that is equal to the argument.
+*/
+int Svect::find(double d) const {
+  multiset<Datapoint>::const_iterator it;
+  Datapoint dp;
+
+  it = a.begin();
+  while (it != a.end()) { if ((*(it->d) - d) > EPSIL) return it->i; else it++; }
+
+  return (-1); // return -1 if there is no element matching
+}
+
+/*
+** The isvalid() function returns whether every explicit element in the vector
+** is actually a valid number.
+*/
+bool Svect::isvalid(void) const {
+  multiset<Datapoint>::const_iterator it;
+  Datapoint dp;
+
+  it = a.begin();
+  while (it != a.end()) { if (!isnormal(*(it->d))) return false; else it++; }
+
+  return true; // return true if there were no invalid elements
+
+}
+/*
 ** The count_explicit() function returns the number of elements that are explicitly 
 ** present in the list.
 */
